@@ -86,126 +86,6 @@ class Coord {
 		this.pinball = pinball
 	}
 
-	//todo 
-	getCoordsAround() {
-		let circle = this.circle
-		let index = this.index
-
-		if (index === 0 && circle === 0) {
-			// 0, 0
-			return [{
-					circle: 1,
-					index: 0
-				},
-				{
-					circle: 1,
-					index: 1
-				},
-				{
-					circle: 1,
-					index: 2
-				},
-				{
-					circle: 1,
-					index: 3
-				},
-				{
-					circle: 1,
-					index: 4
-				},
-				{
-					circle: 1,
-					index: 5
-				},
-			]
-		} else if (index % circle === 0) {
-			// vertex coord
-			let vertex = index / circle
-			return [{
-				circle: circle - 1,
-				index: index - vertex
-			}, {
-				circle: circle + 1,
-				index: index + vertex
-			}, {
-				circle: circle,
-				index: index + 1
-			}, {
-				circle: circle,
-				index: index - 1
-			}, {
-				circle: circle + 1,
-				index: index + vertex + 1
-			}, {
-				circle: circle + 1,
-				index: index + vertex - 1
-			}].map(this.coordsFix)
-		} else {
-			// edge
-			// find left vertex
-			let vertex = parseInt(index / circle)
-			let diff = index - (vertex * circle)
-
-			return [{
-				circle: circle,
-				index: index + 1
-			}, {
-				circle: circle,
-				index: index - 1
-			}, {
-				circle: circle - 1,
-				index: (circle - 1) * vertex + diff
-			}, {
-				circle: circle - 1,
-				index: (circle - 1) * vertex + diff - 1
-			}, {
-				circle: circle + 1,
-				index: (circle + 1) * vertex + diff
-			}, {
-				circle: circle + 1,
-				index: (circle + 1) * vertex + diff + 1
-			}].map(this.coordsFix)
-		}
-	}
-
-	isActive() {
-		let result = false
-		if (this.pinball) {
-			let around = this.getCoordsAround()
-			around.forEach((coord, index) => {
-				if (index === 0) {
-					if (coord.pinball && around[5].pinball && around[1].pinball) {
-						result = true
-					}
-				} else if (index === 5) {
-					if (coord.pinball && around[4].pinball && around[0].pinball) {
-						result = true
-					}
-				} else if (coord.pinball && around[index - 1].pinball && around[index + 1].pinball) {
-					result = true
-				}
-			})
-		}
-		return result
-	}
-
-	coordsFix(coord) {
-		let {
-			circle,
-			index
-		} = coord
-		if (index < 0) {
-			index += (circle * 6)
-		} else if (index >= circle * 6) {
-			index -= (circle * 6)
-		}
-		return {
-			circle: circle,
-			index: index
-		}
-	}
-
-
 }
 class Game {
 	constructor() {
@@ -219,6 +99,7 @@ class Game {
 		this.coords = this.initCoords()
 
 		this.cpMap = this.initMap(this.coords, this.pinballList)
+		this.checkAllCoordsActive()
 		console.log(this.cpMap)
 
 		this.remain = {
@@ -236,20 +117,15 @@ class Game {
 	initCoords() {
 		let coords = []
 		//middle coords
-		coords.push({
-			circle: 0,
-			index: 0
-		})
+		coords.push([new Coord(0, 0)])
 
-		for (let i = 0; i < config.circles; i++) {
+		for (let i = 1; i < config.circles; i++) {
+			let circleArr = []
 			for (let j = 0; j < i * 6; j++) {
-				coords.push({
-					circle: i,
-					index: j
-				})
+				circleArr.push(new Coord(i, j))
 			}
+			coords.push(circleArr)
 		}
-		// console.log(coords)
 		return coords
 	}
 
@@ -258,10 +134,6 @@ class Game {
 
 		}
 	}
-
-	// checkCoordActive(coord) {
-
-	// }
 
 	initBalls() {
 		let balls = []
@@ -275,13 +147,151 @@ class Game {
 
 	initMap(coords, balls) {
 		let map = new Map()
-		balls.forEach((ele, index) => {
-			map.set(coords[index], ele)
+		// balls.forEach((ele, index) => {
+		// 	map.set(coords[index], ele)
+		// 	coords[index].pinball = ele
+		// })
+		let i = 0
+		coords.forEach(circleArr => {
+			circleArr.forEach(coord => {
+				if (balls[i]) {
+					map.set(coord, balls[i])
+					coord.pinball = balls[i]
+				} else {
+					return
+				}
+				i++
+			})
 		})
+
 		return map
 	}
+	
+	getCoordsAround(coord) {
+		let {
+			circle,
+			index
+		} = coord
 
-	matchCheck(a, b) {
+		let result = []
+
+		if (index === 0 && circle === 0) {
+			// 0, 0
+			result =  [
+				this.coords[1][0],
+				this.coords[1][1],
+				this.coords[1][2],
+				this.coords[1][3],
+				this.coords[1][4],
+				this.coords[1][5]
+			]
+		} else if (index % circle === 0) {
+			// vertex coord
+			let vertex = index / circle
+			
+			let fixedIndex =  [{
+				circle: circle + 1,
+				index: index + vertex + 1
+			}, {
+				circle: circle,
+				index: index + 1
+			}, {
+				circle: circle - 1,
+				index: index - vertex
+			}, {
+				circle: circle,
+				index: index - 1
+			}, {
+				circle: circle + 1,
+				index: index + vertex - 1
+			}, {
+				circle: circle + 1,
+				index: index + vertex
+			}, ].map(this.coordsFix)
+
+			fixedIndex.forEach(e => {
+				result.push(this.coords[e.circle][e.index])
+			})
+		} else {
+			// edge
+			// find left vertex
+			let vertex = parseInt(index / circle)
+			let diff = index - (vertex * circle)
+
+			let fixedIndex = [{
+				circle: circle,
+				index: index + 1
+			}, {
+				circle: circle - 1,
+				index: (circle - 1) * vertex + diff
+			}, {
+				circle: circle - 1,
+				index: (circle - 1) * vertex + diff - 1
+			}, {
+				circle: circle,
+				index: index - 1
+			}, {
+				circle: circle + 1,
+				index: (circle + 1) * vertex + diff
+			}, {
+				circle: circle + 1,
+				index: (circle + 1) * vertex + diff + 1
+			}].map(this.coordsFix)
+
+			fixedIndex.forEach(e => {
+				result.push(this.coords[e.circle][e.index])
+			})
+		}
+		// console.log(result)
+		return result
+	}
+
+	checkCoordActive(coord) {
+		let {
+			circle,
+			index
+		} = coord
+		let result = false
+		if (coord.pinball) {
+			let around = this.getCoordsAround(coord)
+			// console.log(around)
+			around.forEach((c, i) => {
+				if (i === 0) {
+					if (c.pinball === null && around[5].pinball === null && around[1].pinball === null) {
+						result = true
+					}
+				} else if (i === 5) {
+					if (c.pinball === null && around[4].pinball === null && around[0].pinball === null ) {
+						result = true
+					}
+				} else if (c.pinball === null && around[i - 1].pinball === null && around[i + 1].pinball === null) {
+					result = true
+				}
+			})
+		}
+		coord.active = result
+		// console.log(coord)
+		return result
+	}
+
+	coordsFix(coord) {
+		if (coord.index < 0) {
+			coord.index += (coord.circle * 6)
+		} else if (coord.index >= coord.circle * 6) {
+			coord.index -= (coord.circle * 6)
+		}
+		return coord
+	}
+
+	checkAllCoordsActive() {
+		this.coords.forEach(circleArr => {
+			circleArr.forEach(coord => {
+				this.checkCoordActive(coord)
+			})
+		})
+	}
+
+	match(a, b) {
 		switch (a.type) {
 			case 'basic':
 				if (b.type === 'basic' && a.element === b.element) {
@@ -316,6 +326,10 @@ class Game {
 				return false
 		}
 		return false
+	}
+
+	drawPinballs() {
+		
 	}
 }
 
