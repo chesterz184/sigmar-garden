@@ -6,41 +6,47 @@
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
    <meta http-equiv="X-UA-Compatible" content="ie=edge">
    <title>Sigma's Garden</title>
+   <script src="./lib/vue.js"></script>
    <!-- <link rel="stylesheet" href="./style.css"> -->
    <style>
       body {
          margin: 0;
          padding: 0;
-         background: url('./textures/background_4.png') no-repeat;
+         /* background: url('./textures/background_4.png') no-repeat; */
       }
 
-      h2 {
-         text-align: center;
+      #app {
+         position: relative;
       }
 
-      .board-container {
-         text-align: center;
+      .coord-item {
+         position: absolute;
+         
+         top: 50vh;
+         left: 50vw;
       }
 
-      canvas {
-         width: 60vw;
-         border: 5px solid #56564c;
-         box-shadow: 0 0 10px black;
+      .coord-item.active {
+         background: rgb(100, 100, 100);
       }
+
+      .coord-item.selected {
+         color: #777;
+         background: grey;
+      }
+
+      
    </style>
 </head>
 
 <body>
-   <header>
-      <h2>
-         Sigma's Garden
-      </h2>
-   </header>
-   <div class="board-container">
-      <canvas width="841" height="758" id="game"></canvas>
+   <div id="app">
+      <template v-for="circle in coords">
+         <coord-item v-for="item in circle" :coord="item" @click-coord="onClickCoord(item)"></coord-item>
+      </template>
    </div>
 
-   <script src="./src/script.js"></script>
+   <script src="./src/script-vue.js"></script>
    <!-- <script src="./lib/script.js"></script> -->
 </body>
 
