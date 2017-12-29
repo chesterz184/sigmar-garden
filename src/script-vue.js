@@ -3,12 +3,18 @@ class Coord {
 		this.circle = circle
 		this.index = index
 		this.pinball = null
-		this.active = false //can be selected
+		this.active = true //can be selected
 		this.selected = false
 	}
 
 	placePinball(pinball) {
 		this.pinball = pinball
+	}
+
+	removePinball() {
+		this.pinball = null
+		// this.active = false
+		this.selected = false
 	}
 }
 
@@ -44,6 +50,21 @@ class Pinball {
 	}
 }
 
+//shuffle Array
+Array.prototype.shuffle = function () {
+	var input = this
+
+	for (let i = input.length - 1; i >= 0; i--) {
+
+		let randomIndex = Math.floor(Math.random() * (i + 1))
+		let itemAtIndex = input[randomIndex]
+
+		input[randomIndex] = input[i]
+		input[i] = itemAtIndex
+	}
+	return input
+}
+
 const config = {
 	hexRadius: 40,
 	count: {
@@ -70,17 +91,38 @@ var app = new Vue({
 	el: '#app',
 	data: {
 		metalList: ['lead', 'tin', 'iron', 'copper', 'silver', 'gold'],
+		// metalList: [],
+		ballsRandomizeSeq: ['air', 'air', 'air', 'air', 'water', 'water', 'water', 'water', 'metal', 'metal', 'metal', 'metal', 'metal', 'salt', 'salt', 'salt', 'salt', 'ld', 'ld', 'ld', 'ld'],
 		pinballList: [],
 		coords: [],
+		coordsToPlace: [],
+		selectedCoord: null
 
+	},
+	computed: {
+		activeCoords: function () {
+			let activeCoords = []
+			this.coordsToPlace.forEach(c => {
+				if (c.active) {
+					activeCoords.push(c)
+				}
+			})
+			return activeCoords
+		}
 	},
 	mounted: function () {
 		this.initCoords()
 		this.initBalls()
-		this.placePinballs(this.coords, this.pinballList)
+
+		this.coordsToPlace = this.generateCoordsArrange()
+		this.placePinballs(this.coordsToPlace, this.pinballList)
+		
 		this.checkAllCoordsActive()
 
-		console.log(this.coords)
+		console.log(this.activeCoords)
+
+
+		// console.log(this.coords)
 	},
 	methods: {
 		initCoords: function () {
@@ -90,7 +132,7 @@ var app = new Vue({
 
 			for (let i = 1; i < config.circles; i++) {
 				let circleArr = []
-				for (let j = 0; j < i * 6; j++) {
+				for (let j = 0; j < i * config.circles; j++) {
 					circleArr.push(new Coord(i, j))
 				}
 				coords.push(circleArr)
@@ -106,32 +148,92 @@ var app = new Vue({
 		},
 		initBalls: function () {
 			let balls = []
+
 			for (let ele in config.count) {
 				for (let i = 0; i < config.count[ele]; i++) {
-					balls.push(new Pinball(ele))
+					if (ele !== 'gold') {
+						balls.push(new Pinball(ele))
+					}
 				}
 			}
+			balls.shuffle().unshift(new Pinball('gold'))
 			this.pinballList = balls
 			return balls
 		},
-		placePinballs: function (coords, balls) {
-			let map = new Map()
-			// balls.forEach((ele, index) => {
-			// 	map.set(coords[index], ele)
-			// 	coords[index].pinball = ele
-			// })
-			let i = 0
-			coords.forEach(circleArr => {
-				circleArr.forEach(coord => {
-					if (balls[i]) {
-						// map.set(coord, balls[i])
-						coord.placePinball(balls[i])
-					} else {
-						return
-					}
-					i++
+		generateCoordsArrange: function () {
+			let a = [2, 3, 6],
+				b = [2, 3, 4, 6, 12],
+				c = [2, 3, 6, 9, 18],
+				d = [2, 3, 4, 6, 8, 12, 24],
+				e = [2, 3, 5, 6, 10, 15, 30]
+
+			let countsForEachCircle = [],
+				fullCounts = [1, 6, 12, 18, 24, 30]
+
+			a.forEach(aa => {
+				b.forEach(bb => {
+					c.forEach(cc => {
+						d.forEach(dd => {
+							e.forEach(ee => {
+								if (aa + bb + cc + dd + ee === 54) {
+									countsForEachCircle.push([1, aa, bb, cc, dd, ee])
+								}
+							})
+						})
+					})
 				})
 			})
+			let range = countsForEachCircle.length
+			let randomedArrange = countsForEachCircle[parseInt(Math.random() * range, 10)]
+			console.log(randomedArrange)
+
+			let arrangedCoords = []
+			this.coords.forEach((circle, idx) => {
+				if (randomedArrange[idx] !== 0) {
+					for (let i = 0; i < fullCounts[idx]; i += (fullCounts[idx] / randomedArrange[idx])) {
+						arrangedCoords.push(circle[i])
+					}
+				}
+			})
+			console.log(arrangedCoords)
+			return arrangedCoords
+		},
+		placePinballs: function (coords, balls) {
+			let coordsLeft = this.coordsToPlace.slice(0)
+			//place gold
+			this.metalList.push('gold')
+			coords[0].placePinball(new Pinball('gold'))
+			coordsLeft.shift()
+
+			//place other pinballs
+			// let ballsRandomizeSeq = this.ballsRandomizeSeq.shuffle()
+			// ballsRandomizeSeq.forEach(ele => {
+			// 	switch (ele) {
+			// 		case 'air':
+			// 		case 'water':
+			// 		case 'fire':
+			// 		case 'earth':
+			// 			let randomizedPos1 = coordsLeft[parseInt(Math.random() * coordsLeft.length, 10)]
+			// 	}
+			// })
+
+
+
+
+
+			// let map = new Map()
+
+			coords.forEach((coord, i) => {
+				if (balls[i]) {
+					// map.set(coord, balls[i])
+					coord.placePinball(balls[i])
+				} else {
+					return
+				}
+
+			})
+
+
 			// return map
 		},
 		setCoordsAround: function (coord) {
@@ -227,27 +329,36 @@ var app = new Vue({
 				index
 			} = coord
 			let result = false
-			if (coord.pinball) {
-				let around = coord.around
-				// console.log(around)
-				around.forEach((c, i) => {
-					if (i === 0) {
-						if (c.pinball === null && around[5].pinball === null && around[1].pinball === null) {
-							result = true
-						}
-					} else if (i === 5) {
-						if (c.pinball === null && around[4].pinball === null && around[0].pinball === null) {
-							result = true
-						}
-					} else if (c.pinball === null && around[i - 1].pinball === null && around[i + 1].pinball === null) {
+			// if (coord.pinball) {
+			let around = coord.around
+			// console.log(around)
+			around.forEach((c, i) => {
+				if (i === 0) {
+					if (c.pinball === null && around[5].pinball === null && around[1].pinball === null) {
 						result = true
 					}
-				})
-				// console.log(coord, result)
+				} else if (i === 5) {
+					if (c.pinball === null && around[4].pinball === null && around[0].pinball === null) {
+						result = true
+					}
+				} else if (c.pinball === null && around[i - 1].pinball === null && around[i + 1].pinball === null) {
+					result = true
+				}
+			})
+
+			if (coord.pinball && coord.pinball.type === 'metal' && coord.pinball.element !== this.metalList[0]) {
+				result = false
 			}
+			// }
 			coord.active = result
 
 			return result
+		},
+		checkSelfAroundCoordActive: function (coord) {
+			this.checkCoordActive(coord)
+			coord.around.forEach(c => {
+				this.checkCoordActive(c)
+			})
 		},
 		checkAllCoordsActive() {
 			this.coords.forEach(circleArr => {
@@ -264,15 +375,80 @@ var app = new Vue({
 			}
 			return coord
 		},
+		onClickCoord: function (coord) {
+			if (coord.active && coord.pinball !== null) {
+				if (this.selectedCoord === null) {
+					//gold
+					if (coord.pinball.element === 'gold') {
+						coord.removePinball()
+						this.checkAllCoordsActive()
+						return
+					}
+					coord.selected = true
+					this.selectedCoord = coord
+				} else if (this.selectedCoord === coord) {
+					this.selectedCoord.selected = false
+					this.selectedCoord = null
+				} else {
+					if (this.match(this.selectedCoord.pinball, coord.pinball)) {
+						this.selectedCoord.removePinball()
+						coord.removePinball()
+						this.selectedCoord = null
 
-		onClickCoord: function(coord) {
-			console.log(coord)
-		}
+						this.checkAllCoordsActive()
+					} else {
+						this.selectedCoord.selected = false
+						this.selectedCoord = null
+					}
+				}
+			}
+		},
+		match(a, b) {
+			switch (a.type) {
+				case 'basic':
+					if (b.type === 'basic' && a.element === b.element) {
+						return true
+					} else if (b.type === 'salt') {
+						return true
+					}
+					break
+				case 'quicksilver':
+					if (b.element === this.metalList[0]) {
+						this.metalList.shift()
+						return true
+					}
+					break
+				case 'salt':
+					if (b.type === 'basic' || b.type === 'salt') {
+						return true
+					}
+					break
+				case 'set':
+					if (b.type === 'set' && a.element !== b.element) {
+						return true
+					}
+					break
+				case 'metal':
+					if (a.element === this.metalList[0] && b.type === 'quicksilver') {
+						this.metalList.shift()
+						return true
+					}
+					break
+				default:
+					return false
+			}
+			return false
+		},
+
+		testGame: function () {
+
+		},
+
 	}
 })
 
 Vue.component('coord-item', {
-	template: '<div @click="onClick" class="coord-item" :class="{active: coord.active, selected: coord.selected}" :style="\'transform: translate(\' + transX + \'px, \' + transY + \'px)\'">{{coord.pinball ? coord.pinball.element : \'null\'}}</div>',
+	template: '<div @click="onClick" class="coord-item" :class="{active: coord.active && coord.pinball, selected: coord.selected}" :style="\'transform: translate(\' + transX + \'px, \' + transY + \'px)\'">{{coord.pinball ? coord.pinball.element : \'null\'}}</div>',
 	props: ['coord'],
 	computed: {
 		transX: function () {
@@ -361,11 +537,11 @@ Vue.component('coord-item', {
 	},
 
 	mounted: function () {
-		
+
 	},
 	methods: {
-		onClick: function() {
-			
+		onClick: function () {
+
 			this.$emit('click-coord')
 		}
 	}
