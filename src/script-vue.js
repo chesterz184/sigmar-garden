@@ -90,8 +90,9 @@ const config = {
 var app = new Vue({
 	el: '#app',
 	data: {
-		metalList: ['lead', 'tin', 'iron', 'copper', 'silver', 'gold'],
 		// metalList: [],
+		metalList: ['lead', 'tin', 'iron', 'copper', 'silver', 'gold'],
+		metalSeq: ['silver', 'copper', 'iron', 'tin', 'lead'],
 		ballsRandomizeSeq: ['air', 'air', 'air', 'air', 'water', 'water', 'water', 'water', 'metal', 'metal', 'metal', 'metal', 'metal', 'salt', 'salt', 'salt', 'salt', 'ld', 'ld', 'ld', 'ld'],
 		pinballList: [],
 		coords: [],
@@ -111,20 +112,22 @@ var app = new Vue({
 		}
 	},
 	mounted: function () {
-		this.initCoords()
-		this.initBalls()
-
-		this.coordsToPlace = this.generateCoordsArrange()
-		this.placePinballs(this.coordsToPlace, this.pinballList)
-		
-		this.checkAllCoordsActive()
-
-		console.log(this.activeCoords)
-
-
-		// console.log(this.coords)
+		this.initGame()
 	},
 	methods: {
+		initGame: function () {
+			this.initCoords()
+			this.pinballList = this.initBalls()
+
+			this.coordsToPlace = this.generateCoordsArrange()
+			this.placePinballs(this.coordsToPlace, this.pinballList)
+
+			this.checkAllCoordsActive()
+
+			this.testGame()
+			// console.log(this.activeCoords)
+			// console.log(this.coords)
+		},
 		initCoords: function () {
 			let coords = []
 			//middle coords
@@ -156,8 +159,9 @@ var app = new Vue({
 					}
 				}
 			}
+			// balls[0] is gold
 			balls.shuffle().unshift(new Pinball('gold'))
-			this.pinballList = balls
+			
 			return balls
 		},
 		generateCoordsArrange: function () {
@@ -167,7 +171,7 @@ var app = new Vue({
 			// 	d = [2, 3, 4, 6, 8, 12, 24],
 			// 	e = [2, 3, 5, 6, 10, 15, 30]
 
-			let a = [3, 6],
+			let a = [0, 3, 6],
 				b = [3, 6, 12],
 				c = [3, 6, 9, 18],
 				d = [3, 6, 12, 24],
@@ -191,7 +195,7 @@ var app = new Vue({
 			})
 			let range = countsForEachCircle.length
 			let randomedArrange = countsForEachCircle[parseInt(Math.random() * range, 10)]
-			console.log(randomedArrange)
+			console.log('randomedArrange: ', randomedArrange)
 
 			let arrangedCoords = []
 			this.coords.forEach((circle, idx) => {
@@ -201,27 +205,112 @@ var app = new Vue({
 					}
 				}
 			})
-			console.log(arrangedCoords)
+			// console.log('arrangedCoords: ', arrangedCoords)
 			return arrangedCoords
 		},
 		placePinballs: function (coords, balls) {
-			let coordsLeft = this.coordsToPlace.slice(0)
+			let coordsLeft = this.coordsToPlace.slice()
 			//place gold
-			this.metalList.push('gold')
-			coords[0].placePinball(new Pinball('gold'))
-			coordsLeft.shift()
+			// coordsLeft[0].placePinball(new Pinball('gold'))
+			// coordsLeft.shift()
+			// this.metalList.push('gold')
 
 			//place other pinballs
-			// let ballsRandomizeSeq = this.ballsRandomizeSeq.shuffle()
-			// ballsRandomizeSeq.forEach(ele => {
-			// 	switch (ele) {
-			// 		case 'air':
-			// 		case 'water':
-			// 		case 'fire':
-			// 		case 'earth':
-			// 			let randomizedPos1 = coordsLeft[parseInt(Math.random() * coordsLeft.length, 10)]
-			// 	}
-			// })
+			let ballsRandomizeSeq = this.ballsRandomizeSeq.shuffle()
+			let self = this
+			function place() {
+				if (ballsRandomizeSeq.length > 0) {
+					console.log(ballsRandomizeSeq)
+					let rPos1, rPos2
+					let ele = ballsRandomizeSeq[0]
+					switch (ele) {
+						case 'air':
+						case 'water':
+						case 'fire':
+						case 'earth':
+							rPos1 = parseInt(Math.random() * coordsLeft.length, 10)
+							rPos2 = parseInt(Math.random() * coordsLeft.length, 10)
+							if (rPos1 !== rPos2) {
+								if (coordsLeft[rPos1].active) {
+									coordsLeft[rPos1].placePinball(new Pinball(ele))
+									self.checkSelfAroundCoordActive(coordsLeft[rPos1])
+									if (coordsLeft[rPos2].active) {
+										//place success
+										coordsLeft[rPos2].placePinball(new Pinball(ele))
+										self.checkSelfAroundCoordActive(coordsLeft[rPos2])
+										coordsLeft.splice(rPos1, 1)
+										coordsLeft.splice(rPos2, 1)
+										ballsRandomizeSeq.shift()
+									} else {
+										//rPos2 isn't active
+										coordsLeft[rPos1].removePinball()
+									}
+								}
+							}
+							break
+						case 'ld':
+							rPos1 = parseInt(Math.random() * coordsLeft.length, 10)
+							rPos2 = parseInt(Math.random() * coordsLeft.length, 10)
+							if (rPos1 !== rPos2) {
+								if (coordsLeft[rPos1].active) {
+									coordsLeft[rPos1].placePinball(new Pinball('life'))
+									self.checkSelfAroundCoordActive(coordsLeft[rPos1])
+									if (coordsLeft[rPos2].active) {
+										//place success
+										coordsLeft[rPos2].placePinball(new Pinball('death'))
+										self.checkSelfAroundCoordActive(coordsLeft[rPos2])
+										coordsLeft.splice(rPos1, 1)
+										coordsLeft.splice(rPos2, 1)
+										ballsRandomizeSeq.shift()
+									} else {
+										//rPos2 isn't active
+										coordsLeft[rPos1].removePinball()
+									}
+								}
+							}
+							break
+						case 'salt':
+							rPos1 = parseInt(Math.random() * coordsLeft.length, 10)
+							if (coordsLeft[rPos1].active) {
+								coordsLeft[rPos1].placePinball(new Pinball(ele))
+								self.checkSelfAroundCoordActive(coordsLeft[rPos1])
+								coordsLeft.splice(rPos1, 1)
+								ballsRandomizeSeq.shift()
+							}
+							break
+						case 'metal':
+							rPos1 = parseInt(Math.random() * coordsLeft.length, 10)
+							rPos2 = parseInt(Math.random() * coordsLeft.length, 10)
+							if (rPos1 !== rPos2) {
+								if (coordsLeft[rPos1].active) {
+									coordsLeft[rPos1].placePinball(new Pinball('quicksilver'))
+									self.checkSelfAroundCoordActive(coordsLeft[rPos1])
+									if (coordsLeft[rPos2].active) {
+										//place success
+										// console.log(self.metalSeq)
+										let metal = self.metalSeq.shift()
+										self.metalList.unshift(metal)
+										// console.log('metalList: ', self.metalList)
+										coordsLeft[rPos2].placePinball(new Pinball(metal))
+
+										self.checkSelfAroundCoordActive(coordsLeft[rPos2])
+
+										coordsLeft.splice(rPos1, 1)
+										coordsLeft.splice(rPos2, 1)
+										ballsRandomizeSeq.shift()
+
+									} else {
+										//rPos2 isn't active
+										coordsLeft[rPos1].removePinball()
+									}
+								}
+							}
+							break
+					}
+					place()
+				}
+			}
+
 
 
 
@@ -334,10 +423,15 @@ var app = new Vue({
 				circle,
 				index
 			} = coord
+
+			if (circle >= config.circles) {
+				return
+			}
 			let result = false
 			// if (coord.pinball) {
 			let around = coord.around
-			// console.log(around)
+			// console.log('coordToCheck', coord)
+			// console.log('around', around)
 			around.forEach((c, i) => {
 				if (i === 0) {
 					if (c.pinball === null && around[5].pinball === null && around[1].pinball === null) {
@@ -353,6 +447,7 @@ var app = new Vue({
 			})
 
 			if (coord.pinball && coord.pinball.type === 'metal' && coord.pinball.element !== this.metalList[0]) {
+				// console.log('checkMetalActive: ', coord.pinball.element, this.metalList[0])
 				result = false
 			}
 			// }
@@ -447,7 +542,22 @@ var app = new Vue({
 		},
 
 		testGame: function () {
-
+			if (this.activeCoords.length > 8 || this.activeCoords.length < 6) {
+				this.initGame()
+			} else {
+				console.log('test')
+				let ok = false
+				this.activeCoords.forEach( (coo, idx, arr) => {
+					for(let i = idx + 1; i < arr.length; i++) {
+						if(this.match(coo.pinball, arr[i].pinball)) {
+							ok = true
+						}
+					}
+				})
+				if(!ok) {
+					this.initGame()
+				}
+			}
 		},
 
 	}

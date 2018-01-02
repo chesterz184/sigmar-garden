@@ -42,6 +42,7 @@
 
 <body>
    <div id="app">
+      <button @click="initGame">new game</button>
       <template v-for="circle in coords">
          <coord-item v-for="item in circle" :coord="item" @click-coord="onClickCoord(item)"></coord-item>
       </template>
