@@ -1,54 +1,17 @@
-class Coord {
-	constructor(circle, index) {
-		this.circle = circle
-		this.index = index
-		this.pinball = null
-		this.active = true //can be selected
-		this.selected = false
-	}
+<template>
+	<div id="app">
+		<button @click="initGame">new game</button>
+		<template v-for="circle in coords">
+			<coord-item v-for="(item, index) in circle" :coord="item" @click-coord="onClickCoord(item)"></coord-item>
+		</template>
+	</div>
+</template>
 
-	placePinball(pinball) {
-		this.pinball = pinball
-	}
-
-	removePinball() {
-		this.pinball = null
-		// this.active = false
-		this.selected = false
-	}
-}
-
-class Pinball {
-	constructor(element) {
-		this.element = element
-		switch (element) {
-			case 'air':
-			case 'water':
-			case 'fire':
-			case 'earth':
-				this.type = 'basic'
-				break
-			case 'quicksilver':
-				this.type = 'quicksilver'
-				break
-			case 'lead':
-			case 'tin':
-			case 'iron':
-			case 'copper':
-			case 'silver':
-			case 'gold':
-				this.type = 'metal'
-				break
-			case 'salt':
-				this.type = 'salt'
-				break
-			case 'life':
-			case 'death':
-				this.type = 'set'
-				break
-		}
-	}
-}
+<script>
+import Coord from './Coord'
+import Pinball from './Pinball'
+import CoordItem from './components/CoordItem'
+import config from './config'
 
 //shuffle Array
 Array.prototype.shuffle = function () {
@@ -65,40 +28,22 @@ Array.prototype.shuffle = function () {
 	return input
 }
 
-const config = {
-	hexRadius: 40,
-	count: {
-		air: 8,
-		water: 8,
-		fire: 8,
-		earth: 8,
-		lead: 1,
-		tin: 1,
-		iron: 1,
-		copper: 1,
-		silver: 1,
-		gold: 1,
-		quicksilver: 5, //metal - 1
-		salt: 4,
-		life: 4,
-		death: 4
+export default {
+	name: 'app',
+	components: {
+		CoordItem
 	},
-	circles: 6
-}
-
-
-var app = new Vue({
-	el: '#app',
-	data: {
-		// metalList: [],
-		metalList: ['lead', 'tin', 'iron', 'copper', 'silver', 'gold'],
-		metalSeq: ['silver', 'copper', 'iron', 'tin', 'lead'],
-		ballsRandomizeSeq: ['air', 'air', 'air', 'air', 'water', 'water', 'water', 'water', 'metal', 'metal', 'metal', 'metal', 'metal', 'salt', 'salt', 'salt', 'salt', 'ld', 'ld', 'ld', 'ld'],
-		pinballList: [],
-		coords: [],
-		coordsToPlace: [],
-		selectedCoord: null
-
+	data() {
+		return {
+			// metalList: [],
+			metalList: ['lead', 'tin', 'iron', 'copper', 'silver', 'gold'],
+			metalSeq: ['silver', 'copper', 'iron', 'tin', 'lead'],
+			ballsRandomizeSeq: ['air', 'air', 'air', 'air', 'water', 'water', 'water', 'water', 'metal', 'metal', 'metal', 'metal', 'metal', 'salt', 'salt', 'salt', 'salt', 'ld', 'ld', 'ld', 'ld'],
+			pinballList: [],
+			coords: [],
+			coordsToPlace: [],
+			selectedCoord: null
+		}
 	},
 	computed: {
 		activeCoords: function () {
@@ -161,7 +106,7 @@ var app = new Vue({
 			}
 			// balls[0] is gold
 			balls.shuffle().unshift(new Pinball('gold'))
-			
+
 			return balls
 		},
 		generateCoordsArrange: function () {
@@ -548,118 +493,48 @@ var app = new Vue({
 			} else {
 				console.log('test')
 				let ok = false
-				this.activeCoords.forEach( (coo, idx, arr) => {
-					for(let i = idx + 1; i < arr.length; i++) {
-						if(this.match(coo.pinball, arr[i].pinball)) {
+				this.activeCoords.forEach((coo, idx, arr) => {
+					for (let i = idx + 1; i < arr.length; i++) {
+						if (this.match(coo.pinball, arr[i].pinball)) {
 							ok = true
 						}
 					}
 				})
-				if(!ok) {
+				if (!ok) {
 					this.initGame()
 				}
 			}
 		},
 
 	}
-})
+}
+</script>
 
-Vue.component('coord-item', {
-	template: '<div @click="onClick" class="coord-item" :class="{active: coord.active && coord.pinball, selected: coord.selected}" :style="\'transform: translate(\' + transX + \'px, \' + transY + \'px)\'">{{coord.pinball ? coord.pinball.element : \'null\'}}</div>',
-	props: ['coord'],
-	computed: {
-		transX: function () {
-			let { circle, index } = this.coord
-			if (index === 0 && circle === 0) {
-				// 0, 0
-				return 0
-			} else if (index % circle === 0) {
-				// vertex coord
-				let vertex = index / circle
-				switch (vertex) {
-					case 0:
-						return circle * config.hexRadius * Math.sqrt(3)
-					case 1:
-					case 5:
-						return circle * config.hexRadius * Math.sqrt(3) / 2
-					case 2:
-					case 4:
-						return circle * config.hexRadius * Math.sqrt(3) / (-2)
-					case 3:
-						return circle * config.hexRadius * Math.sqrt(3) * (-1)
-				}
-			} else {
-				// edge
-				// find left vertex
-				let vertex = parseInt(index / circle)
-				let diff = index - (vertex * circle)
+<style lang="scss">
+body {
+  margin: 0;
+  padding: 0;
+  /* background: url('./textures/background_4.png') no-repeat; */
+}
 
-				switch (vertex) {
-					case 0:
-						return circle * config.hexRadius * Math.sqrt(3) - (config.hexRadius * diff * Math.sqrt(3) / 2)
-					case 1:
-						return circle * config.hexRadius * Math.sqrt(3) / 2 - (config.hexRadius * diff * Math.sqrt(3))
-					case 2:
-						return circle * config.hexRadius * Math.sqrt(3) / (-2) - (config.hexRadius * diff * Math.sqrt(3) / 2)
-					case 3:
-						return circle * config.hexRadius * Math.sqrt(3) * (-1) + (config.hexRadius * diff * Math.sqrt(3) / 2)
-					case 4:
-						return circle * config.hexRadius * Math.sqrt(3) / (-2) + (config.hexRadius * diff * Math.sqrt(3))
-					case 5:
-						return circle * config.hexRadius * Math.sqrt(3) / 2 + (config.hexRadius * diff * Math.sqrt(3) / 2)
-				}
-			}
-		},
-		transY: function () {
-			let { circle, index } = this.coord
-			if (index === 0 && circle === 0) {
-				// 0, 0
-				return 0
-			} else if (index % circle === 0) {
-				// vertex coord
-				let vertex = index / circle
-				switch (vertex) {
-					case 0:
-					case 3:
-						return 0
-					case 1:
-					case 2:
-						return circle * config.hexRadius * -1.5
-					case 4:
-					case 5:
-						return circle * config.hexRadius * 1.5
-				}
-			} else {
-				// edge
-				// find left vertex
-				let vertex = parseInt(index / circle)
-				let diff = index - (vertex * circle)
+#app {
+  position: relative;
+}
 
-				switch (vertex) {
-					case 0:
-						return 0 - diff * config.hexRadius * 1.5
-					case 1:
-						return circle * config.hexRadius * -1.5
-					case 2:
-						return circle * config.hexRadius * -1.5 + diff * config.hexRadius * 1.5
-					case 3:
-						return 0 + diff * config.hexRadius * 1.5
-					case 4:
-						return circle * config.hexRadius * 1.5
-					case 5:
-						return circle * config.hexRadius * 1.5 - diff * config.hexRadius * 1.5
-				}
-			}
-		}
-	},
+.coord-item {
+  position: absolute;
 
-	mounted: function () {
+  top: 50vh;
+  left: 50vw;
+}
 
-	},
-	methods: {
-		onClick: function () {
+.coord-item.active {
+  background: #333;
+  color: #ddd;
+}
 
-			this.$emit('click-coord')
-		}
-	}
-})
+.coord-item.selected {
+  color: #777;
+  background: grey;
+}
+</style>
