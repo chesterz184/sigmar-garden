@@ -20,9 +20,7 @@
 		},
 		data() {
 			return {
-				// metalList: [],
 				metalList: ['lead', 'tin', 'iron', 'copper', 'silver', 'gold'],
-				metalSeq: ['silver', 'copper', 'iron', 'tin', 'lead'],
 				pinballList: [],
 				coords: [],
 				coordsToPlace: [],
