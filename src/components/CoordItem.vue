@@ -1,5 +1,5 @@
 <template>
-   <div @click="onClick" class="coord-item" :class="{active: coord.active && coord.pinball, selected: coord.selected}" :style="'transform: translate(' + transX + 'px, ' + transY + 'px)'">{{coord.pinball ? coord.pinball.element : 'null'}}</div>
+   <div @click="onClick" class="coord-item" :class="{active: coord.active && coord.pinball, selected: coord.selected}" :style="'transform: translate(' + transX + 'px, ' + transY + 'px)'">{{coord.pinball ? coord.pinball.element : ''}}</div>
 </template>
 <script>
 import config from '../config'
@@ -104,5 +104,19 @@ export default {
 }
 </script>
 <style>
+.coord-item {
+		position: absolute;
+		top: 50vh;
+		left: 50vw;
+	}
 
+	.coord-item.active {
+		background: #333;
+		color: #ddd;
+	}
+
+	.coord-item.selected {
+		color: #777;
+		background: grey;
+	}
 </style>
