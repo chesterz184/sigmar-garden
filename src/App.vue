@@ -55,9 +55,10 @@ export default {
 			// console.log(this.activeCoords)
 			// console.log(this.coords)
 		},
+		//create a new coord Array
 		createCoords: function () {
 			let coords = []
-			//middle coords
+			//center coord
 			coords.push([new Coord(0, 0)])
 
 			for (let i = 1; i < config.circles; i++) {
@@ -76,6 +77,7 @@ export default {
 
 			return coords
 		},
+		//create a randomized pinball array (gold at 0)
 		createPinballs: function () {
 			let balls = []
 
@@ -91,17 +93,12 @@ export default {
 
 			return balls
 		},
+		//generate a coords arrangement with rotational symmetry
 		generateCoordsArrange: function (coords) {
-			// let a = [2, 3, 6],
-			// 	b = [2, 3, 4, 6, 12],
-			// 	c = [2, 3, 6, 9, 18],
-			// 	d = [2, 3, 4, 6, 8, 12, 24],
-			// 	e = [2, 3, 5, 6, 10, 15, 30]
-
 			let a = [0, 3, 6],
 				b = [0, 3, 6, 9, 12],
 				c = [0, 3, 6, 9, 12, 15, 18],
-				d = [0, 3, 6, 12, 15, 18, 21, 24],
+				d = [0, 3, 6, 9, 12, 15, 18, 21, 24],
 				e = [0, 3, 6, 9, 12, 15, 18, 21, 24, 27, 30]
 
 			let countsForEachCircle = [],
@@ -140,22 +137,15 @@ export default {
 							arrangedCoords.push(circle[i])
 						}
 					}
-					// for (let i = 0; i < fullCounts[idx]; i += (fullCounts[idx] / randomedArrange[idx])) {
-					// 	arrangedCoords.push(circle[i])
-					// }
 				}
 			})
 			// console.log('arrangedCoords: ', arrangedCoords)
 			return arrangedCoords
 		},
+		//place pinballs on coords generated
 		placePinballs: function (coords, balls) {
 			let coordsLeft = this.coordsToPlace.slice()
-			//place gold
-			// coordsLeft[0].placePinball(new Pinball('gold'))
-			// coordsLeft.shift()
-			// this.metalList.push('gold')
-
-			//place other pinballs
+			
 			coords.forEach((coord, i) => {
 				if (balls[i]) {
 					// map.set(coord, balls[i])
@@ -167,6 +157,8 @@ export default {
 			})
 
 		},
+
+
 		setCoordsAround: function (coord, coordList) {
 			let {
 					circle,
@@ -274,10 +266,6 @@ export default {
 			let around = coord.around
 			// console.log('coordToCheck', coord)
 			// console.log('around', around)
-			if (coord.pinball && coord.pinball.type === 'metal' && coord.pinball.element !== this.metalList[0]) {
-				// console.log('checkMetalActive: ', coord.pinball.element, this.metalList[0])
-				result = false
-			}
 
 			around.forEach((c, i) => {
 				if (i === 0) {
@@ -293,7 +281,11 @@ export default {
 				}
 			})
 
-			
+			if (coord.pinball && coord.pinball.type === 'metal' && coord.pinball.element !== this.metalList[0]) {
+				// console.log('checkMetalActive: ', coord.pinball.element, this.metalList[0])
+				result = false
+			}
+
 			// }
 			coord.active = result
 
@@ -342,6 +334,7 @@ export default {
 			}
 			return false
 		},
+		//todo: test if the game can be finished
 		testGame: function () {
 			if (this.activeCoords.length > 8 || this.activeCoords.length < 5) {
 				this.initGame()
@@ -359,11 +352,9 @@ export default {
 				}
 			}
 		},
-
-
-
 		onClickCoord: function (coord) {
 			if (coord.active && coord.pinball !== null) {
+				//nothing selected
 				if (this.selectedCoord === null) {
 					//gold
 					if (coord.pinball.element === 'gold') {
@@ -373,17 +364,17 @@ export default {
 					}
 					coord.selected = true
 					this.selectedCoord = coord
-				} else if (this.selectedCoord === coord) {
+				} else if (this.selectedCoord === coord) { //coord already selected
 					this.selectedCoord.selected = false
 					this.selectedCoord = null
-				} else {
+				} else { //another coord selected
 					if (this.match(this.selectedCoord.pinball, coord.pinball)) {
 						this.selectedCoord.removePinball()
 						coord.removePinball()
-						this.selectedCoord = null
 
+						this.selectedCoord = null
 						this.checkAllCoordsActive()
-					} else {
+					} else { //don't match
 						this.selectedCoord.selected = false
 						this.selectedCoord = null
 					}
