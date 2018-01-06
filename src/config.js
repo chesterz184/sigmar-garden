@@ -13,8 +13,8 @@ const config = {
 		gold: 1,
 		quicksilver: 5, //metal - 1
 		salt: 4,
-		life: 4,
-		death: 4
+		vitae: 4,
+		mors: 4
 	},
 	circles: 6
 }

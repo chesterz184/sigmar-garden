@@ -22,8 +22,8 @@ class Pinball {
 			case 'salt':
 				this.type = 'salt'
 				break
-			case 'life':
-			case 'death':
+			case 'vitae':
+			case 'mors':
 				this.type = 'set'
 				break
 		}

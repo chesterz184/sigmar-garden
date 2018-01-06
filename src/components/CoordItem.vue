@@ -1,5 +1,7 @@
 <template>
-   <div @click="onClick" class="coord-item" :class="{active: coord.active && coord.pinball, selected: coord.selected}" :style="'transform: translate(' + transX + 'px, ' + transY + 'px)'">{{coord.pinball ? coord.pinball.element : ''}}</div>
+   <div @click="onClick" class="coord-item" :class="{active: coord.active && coord.pinball, selected: coord.selected}" :style="'transform: translate(' + transX + 'px, ' + transY + 'px)'">
+		<img v-if="coord.pinball" :src="'../../textures/atoms/' + coord.pinball.element + '.png'" alt="">
+	</div>
 </template>
 <script>
 import config from '../config'
@@ -109,10 +111,12 @@ export default {
 		top: 50vh;
 		left: 50vw;
 	}
+	.coord-item img {
+		opacity: .3;
+	}
 
-	.coord-item.active {
-		background: #333;
-		color: #ddd;
+	.coord-item.active img{
+		opacity: 1;
 	}
 
 	.coord-item.selected {

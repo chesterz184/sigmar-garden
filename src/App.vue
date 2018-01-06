@@ -49,6 +49,8 @@ export default {
 			this.coordsToPlace = this.generateCoordsArrange(this.coords)
 			this.placePinballs(this.coordsToPlace, this.pinballList)
 
+			this.metalList = ['lead', 'tin', 'iron', 'copper', 'silver', 'gold'],
+
 			this.checkAllCoordsActive()
 
 			this.testGame()
@@ -336,7 +338,7 @@ export default {
 		},
 		//todo: test if the game can be finished
 		testGame: function () {
-			if (this.activeCoords.length > 8 || this.activeCoords.length < 5) {
+			if (this.activeCoords.length > 9 || this.activeCoords.length < 5) {
 				this.initGame()
 			} else {
 				let ok = false
