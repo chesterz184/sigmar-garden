@@ -1,6 +1,6 @@
 <template>
 	<div id="app">
-		<button @click="initGame">new game</button>
+		<button class="btn-start" @click="initGame">new game</button>
 		<template v-for="circle in coords">
 			<coord-item v-for="(item, index) in circle" :key="item.circle.toString() + index" :coord="item" @click-coord="onClickCoord(item)"></coord-item>
 		</template>
@@ -49,9 +49,9 @@ export default {
 			this.coordsToPlace = this.generateCoordsArrange(this.coords)
 			this.placePinballs(this.coordsToPlace, this.pinballList)
 
-			this.metalList = ['lead', 'tin', 'iron', 'copper', 'silver', 'gold'],
+			this.metalList = ['lead', 'tin', 'iron', 'copper', 'silver', 'gold']
 
-				this.checkAllCoordsActive()
+			this.checkAllCoordsActive()
 
 			this.testGame()
 			// console.log(this.activeCoords)
@@ -121,7 +121,7 @@ export default {
 			})
 			let range = countsForEachCircle.length
 			let randomedArrange = countsForEachCircle[parseInt(Math.random() * range, 10)]
-			console.log('randomedArrange: ', randomedArrange)
+			// console.log('randomedArrange: ', randomedArrange)
 
 			let arrangedCoords = []
 			coords.forEach((circle, idx) => {
@@ -347,17 +347,16 @@ export default {
 				if (!this.testActiveCoords(this.activeCoords)) {
 					this.initGame()
 				}
+				//protect lead (useless
 				this.coords.forEach(circle => {
 					circle.forEach(c => {
 						if (c.pinball && c.pinball.element === 'lead') {
-							console.log('lead')
 							let count = 0
 							c.around.forEach(cc => {
-								if (cc.pinball && this.metalList.indexOf(cc.pinball.element) > 0 || cc.pinball.element === 'quicksilver') {
+								if (cc.pinball && (cc.pinball.type === 'metal' || cc.pinball.element === 'quicksilver')) {
 									count++
 								}
 							})
-							console.log('count', count)
 							if (count > 2) {
 								this.initGame()
 							}
@@ -430,10 +429,21 @@ export default {
 body {
   margin: 0;
   padding: 0;
+  background: rgb(189, 180, 150);
   /* background: url('./textures/background_4.png') no-repeat; */
 }
 
 #app {
   position: relative;
+}
+
+.btn-start {
+	display: block;
+	margin: 20px auto;
+	height: 60px;
+	width: 120px;
+	font-size: 20px;
+	border-radius: 6px;
+	border: 1px solid grey;
 }
 </style>
