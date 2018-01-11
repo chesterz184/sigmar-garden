@@ -1,6 +1,6 @@
 <template>
    <div @click="onClick" class="coord-item" :class="{active: coord.active && coord.pinball, selected: coord.selected}" :style="'transform: translate(' + transX + 'px, ' + transY + 'px)'">
-		<img v-if="coord.pinball" :src="'../../textures/atoms/' + coord.pinball.element + '.png'" alt="">
+		<img v-if="coord.pinball" :src="src" alt="">
 	</div>
 </template>
 <script>
@@ -13,6 +13,9 @@ export default {
       }
    },
    computed: {
+		src() {
+			return './textures/atoms/' + this.coord.pinball.element + '.png'
+		},
 		transX: function () {
 			let { circle, index } = this.coord
 			if (index === 0 && circle === 0) {
