@@ -12,6 +12,7 @@ import Coord from './Coord'
 import Pinball from './Pinball'
 import CoordItem from './components/CoordItem'
 import config from './config'
+import Game from './lib/Game'
 
 export default {
 	name: 'app',
@@ -20,10 +21,11 @@ export default {
 	},
 	data() {
 		return {
+			game: new Game(),
 			metalList: ['lead', 'tin', 'iron', 'copper', 'silver', 'gold'],
 			pinballList: [],
-			coords: [],
-			coordsToPlace: [],
+			coords: [], //all the coords on board
+			coordsToPlace: [], //all coords with pinball at the beginning
 			selectedCoord: null
 		}
 	},
@@ -43,17 +45,19 @@ export default {
 	},
 	methods: {
 		initGame: function () {
-			this.coords = this.createCoords()
-			this.pinballList = this.createPinballs()
+			this.game.newGame()
+			this.coords = this.game.coords
+			// this.coords = this.createCoords()
+			// this.pinballList = this.createPinballs()
 
-			this.coordsToPlace = this.generateCoordsArrange(this.coords)
-			this.placePinballs(this.coordsToPlace, this.pinballList)
+			// this.coordsToPlace = this.generateCoordsArrange(this.coords)
+			// this.placePinballs(this.coordsToPlace, this.pinballList)
 
-			this.metalList = ['lead', 'tin', 'iron', 'copper', 'silver', 'gold']
+			// this.metalList = ['lead', 'tin', 'iron', 'copper', 'silver', 'gold']
 
-			this.checkAllCoordsActive()
+			// this.checkAllCoordsActive()
 
-			this.testGame()
+			// this.testGame()
 			// console.log(this.activeCoords)
 			// console.log(this.coords)
 		},
@@ -71,11 +75,11 @@ export default {
 				coords.push(circleArr)
 			}
 
-			coords.forEach(circle => {
-				circle.forEach(coo => {
-					coo.around = this.setCoordsAround(coo, coords)
-				})
-			})
+			// coords.forEach(circle => {
+			// 	circle.forEach(coo => {
+			// 		coo.around = this.setCoordsAround(coo, coords)
+			// 	})
+			// })
 
 			return coords
 		},
@@ -146,8 +150,6 @@ export default {
 		},
 		//place pinballs on coords generated
 		placePinballs: function (coords, balls) {
-			let coordsLeft = this.coordsToPlace.slice()
-
 			coords.forEach((coord, i) => {
 				if (balls[i]) {
 					// map.set(coord, balls[i])
@@ -160,8 +162,8 @@ export default {
 
 		},
 
-
-		setCoordsAround: function (coord, coordList) {
+		//get Coords around a coord
+		getCoordsAround: function (coord) {
 			let {
 					circle,
 				index
@@ -181,18 +183,18 @@ export default {
 			if (index === 0 && circle === 0) {
 				// 0, 0
 				result = [
-					coordList[1][0],
-					coordList[1][1],
-					coordList[1][2],
-					coordList[1][3],
-					coordList[1][4],
-					coordList[1][5]
+					{circle: 1, index: 0},
+					{circle: 1, index: 1},
+					{circle: 1, index: 2},
+					{circle: 1, index: 3},
+					{circle: 1, index: 4},
+					{circle: 1, index: 5},
 				]
 			} else if (index % circle === 0) {
 				// vertex coord
 				let vertex = index / circle
 
-				let fixedIndex = [{
+				result = [{
 					circle: circle + 1,
 					index: index + vertex + 1
 				}, {
@@ -212,21 +214,13 @@ export default {
 					index: index + vertex
 				},].map(coordsFix)
 
-				fixedIndex.forEach(e => {
-					if (coordList[e.circle]) {
-						result.push(coordList[e.circle][e.index])
-					} else {
-						result.push(new Coord(e.circle, e.index))
-					}
-
-				})
 			} else {
 				// edge
 				// find left vertex
 				let vertex = parseInt(index / circle)
 				let diff = index - (vertex * circle)
 
-				let fixedIndex = [{
+				result = [{
 					circle: circle,
 					index: index + 1
 				}, {
@@ -245,19 +239,11 @@ export default {
 					circle: circle + 1,
 					index: (circle + 1) * vertex + diff + 1
 				}].map(coordsFix)
-
-				fixedIndex.forEach(e => {
-					if (coordList[e.circle]) {
-						result.push(coordList[e.circle][e.index])
-					} else {
-						result.push(new Coord(e.circle, e.index))
-					}
-				})
 			}
 			// console.log(result)
 			return result
 		},
-		checkCoordActive: function (coord) {
+		checkCoordActive: function (coord, coordList) {
 			let {
 					circle,
 				index
@@ -268,7 +254,14 @@ export default {
 			}
 			let result = false
 			// if (coord.pinball) {
-			let around = coord.around
+			let around = this.getCoordsAround(coord).map( coo => {
+				if(coordList[coo.circle]) {
+					return coordList[coo.circle][coo.index]
+				} else {
+					return new Coord(coo.circle, coo.index)
+				}
+			})
+			
 			// console.log('coordToCheck', coord)
 			// console.log('around', around)
 
@@ -299,7 +292,7 @@ export default {
 		checkAllCoordsActive() {
 			this.coords.forEach(circleArr => {
 				circleArr.forEach(coord => {
-					this.checkCoordActive(coord)
+					this.checkCoordActive(coord, this.coords)
 				})
 			})
 		},
@@ -348,21 +341,21 @@ export default {
 					this.initGame()
 				}
 				//protect lead (useless
-				this.coords.forEach(circle => {
-					circle.forEach(c => {
-						if (c.pinball && c.pinball.element === 'lead') {
-							let count = 0
-							c.around.forEach(cc => {
-								if (cc.pinball && (cc.pinball.type === 'metal' || cc.pinball.element === 'quicksilver')) {
-									count++
-								}
-							})
-							if (count > 2) {
-								this.initGame()
-							}
-						}
-					})
-				})
+				// this.coords.forEach(circle => {
+				// 	circle.forEach(c => {
+				// 		if (c.pinball && c.pinball.element === 'lead') {
+				// 			let count = 0
+				// 			c.around.forEach(cc => {
+				// 				if (cc.pinball && (cc.pinball.type === 'metal' || cc.pinball.element === 'quicksilver')) {
+				// 					count++
+				// 				}
+				// 			})
+				// 			if (count > 2) {
+				// 				this.initGame()
+				// 			}
+				// 		}
+				// 	})
+				// })
 			}
 		},
 		test: function () {
