@@ -1,8 +1,7 @@
 <template>
 	<div id="app">
 		<button class="btn-start" @click="initGame">new game</button>
-		<p v-if="win"> 胜利</p>
-		<p v-else>失败</p>
+		<button class="btn-start" @click="debug" >solve</button>
 		<template v-for="circle in coords">
 			<coord-item v-for="(item, index) in circle" :key="item.circle.toString() + index" :coord="item" @click-coord="onClickCoord(item)"></coord-item>
 		</template>
@@ -20,7 +19,6 @@ export default {
 	},
 	data() {
 		return {
-			win: false,
 			coords: [], //all the coords on board to be rendered
 		}
 	},
@@ -43,6 +41,7 @@ export default {
 			console.log(this.game)
 			this.game.newGame()
 			this.coords = this.game.coords
+			
 		},
 		onClickCoord: function (coord) {
 			this.game.select = coord
@@ -50,6 +49,11 @@ export default {
 				alert('you win !')
 			}
 		},
+
+
+		debug: function() {
+			this.game.solve()
+		}
 
 	}
 }
