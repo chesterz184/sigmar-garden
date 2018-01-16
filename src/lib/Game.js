@@ -8,7 +8,9 @@ class Game {
 	}
 
 	newGame() {
-		this.selectedCoords = []
+		this.win = false
+		this.selectedCoord = null
+		this.activeCoords = []
 		this.metalList = ['lead', 'tin', 'iron', 'copper', 'silver', 'gold']
 		this.coords = createCoords()
 		this.coordsToPlace = generateCoordsArrange(this.coords)
@@ -16,20 +18,58 @@ class Game {
 		this.checkAllCoordsActive()
 		this.test()
 	}
-	set selectedCoord(pair) {
-	}
-	get selectedCoord() {
-
-	}
-	get activeCoords() {
-		let activeCoords = []
-		this.coordsToPlace.forEach(c => {
-			if (c.active) {
-				activeCoords.push(c)
+	set select(coord) {
+		if (coord.active && coord.pinball !== null) {
+			//nothing selected
+			if (this.selectedCoord === null) {
+				//gold
+				if (coord.pinball.element === 'gold') {
+					coord.removePinball()
+					//win check
+					let activeCount = this.checkAllCoordsActive()
+					// console.log(activeCount, this.activeCoords)
+					if (activeCount === 0) {
+						this.win = true
+					}
+					return
+				}
+				//not gold
+				coord.selected = true
+				this.selectedCoord = coord
+			} else if (this.selectedCoord === coord) { //coord already selected
+				this.selectedCoord.selected = false
+				this.selectedCoord = null
+			} else { //another coord selected
+				if (this.match(this.selectedCoord.pinball, coord.pinball)) {
+					this.selectedCoord.removePinball()
+					coord.removePinball()
+					this.selectedCoord = null
+					//win check
+					let activeCount = this.checkAllCoordsActive()
+					// console.log(activeCount, this.activeCoords)
+					if (activeCount === 0) {
+						this.win = true
+					}
+				} else { //don't match
+					this.selectedCoord.selected = false
+					this.selectedCoord = null
+				}
 			}
-		})
-		return activeCoords
+		}
 	}
+	get select() {
+		return this.selectedCoord
+	}
+	// get activeCoords() {
+	// 	let activeCoords = []
+	// 	this.coordsToPlace.forEach(c => {
+	// 		if (c.active) {
+	// 			activeCoords.push(c)
+	// 		}
+	// 	})
+	// 	console.log(activeCoords)
+	// 	return activeCoords
+	// }
 	test() {
 		if (this.activeCoords.length > 9 || this.activeCoords.length < 5) {
 			this.newGame()
@@ -38,8 +78,6 @@ class Game {
 				this.newGame()
 			}
 		}
-	}
-	onSelect() {
 	}
 	match(a, b) {
 		switch (a.type) {
@@ -78,11 +116,18 @@ class Game {
 		return false
 	}
 	checkAllCoordsActive() {
+		let count = 0,
+			actives = []
 		this.coords.forEach(circleArr => {
 			circleArr.forEach(coord => {
-				this.checkCoordActive(coord, this.coords)
+				if (this.checkCoordActive(coord, this.coords)) {
+					count++
+					actives.push(coord)
+				}
 			})
 		})
+		this.activeCoords = actives
+		return count
 	}
 	checkCoordActive(coord, coordList) {
 		let {
@@ -91,7 +136,10 @@ class Game {
 		} = coord
 
 		if (circle >= config.circles) {
-			return
+			return true
+		}
+		if (coord.pinball === null) {
+			return false
 		}
 		let result = false
 		// if (coord.pinball) {
@@ -258,29 +306,29 @@ function getCoordsAround(coord) {
 	if (index === 0 && circle === 0) {
 		// 0, 0
 		result = [{
-				circle: 1,
-				index: 0
-			},
-			{
-				circle: 1,
-				index: 1
-			},
-			{
-				circle: 1,
-				index: 2
-			},
-			{
-				circle: 1,
-				index: 3
-			},
-			{
-				circle: 1,
-				index: 4
-			},
-			{
-				circle: 1,
-				index: 5
-			},
+			circle: 1,
+			index: 0
+		},
+		{
+			circle: 1,
+			index: 1
+		},
+		{
+			circle: 1,
+			index: 2
+		},
+		{
+			circle: 1,
+			index: 3
+		},
+		{
+			circle: 1,
+			index: 4
+		},
+		{
+			circle: 1,
+			index: 5
+		},
 		]
 	} else if (index % circle === 0) {
 		// vertex coord
@@ -304,7 +352,7 @@ function getCoordsAround(coord) {
 		}, {
 			circle: circle + 1,
 			index: index + vertex
-		}, ].map(coordsFix)
+		},].map(coordsFix)
 
 	} else {
 		// edge

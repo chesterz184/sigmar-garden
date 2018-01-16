@@ -4,7 +4,7 @@
 	</div>
 </template>
 <script>
-import config from "../config";
+import config from "../lib/config";
 export default {
   props: ["coord"],
   data() {

@@ -3,7 +3,7 @@ class Coord {
 		this.circle = circle
 		this.index = index
 		this.pinball = null
-		this.active = true //can be selected
+		this.active = false //can be selected
 		this.selected = false
 	}
 
