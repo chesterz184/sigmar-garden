@@ -11,10 +11,10 @@ class Game {
 		this.win = false
 		this.selectedCoord = null
 		this.activeCoords = []
-		this.metalList = ['lead', 'tin', 'iron', 'copper', 'silver', 'gold']
 		this.coords = createCoords()
 		this.coordsToPlace = generateCoordsArrange(this.coords)
 		placePinballs(this.coordsToPlace, createPinballs())
+		this.metalList = this.getMetalList()
 		this.activeCoords = this.checkAllCoordsActive()
 		this.test()
 	}
@@ -195,17 +195,21 @@ class Game {
 	solve() {
 		console.log('solving. . .')
 		let nodeStorage = [],
-			 pairStorage = [],
-			 startLayout = copyCoords(this.coords)
+			pairStorage = [],
+			startLayout = copyCoords(this.coords)
 		nodeStorage.push(startLayout)
 		console.log(nodeStorage)
 
 		let dfs = nodes => {
 			if (nodes.length > 0) {
 				if (this.getMatchPairs().length > 0) {
-					this.getMatchPairs().forEach(pair => {
+					console.log('matches', this.getMatchPairs())
+					// this.getMatchPairs().forEach((pair, idx) => {
+						let pair = this.getMatchPairs()[0]
 						// pairStorage.unshift(pair)
-						console.log('pair', pairStorage)
+						// nodes.unshift(copyCoords(this.coords))
+						// console.log('pair', pairStorage)
+						// console.log('idx', idx)
 						this.doMatch(pair)
 						if (this.win) {
 							alert('has solution')
@@ -216,21 +220,26 @@ class Game {
 						nodes.unshift(copyCoords(this.coords))
 						console.log('nodes', nodes)
 						setTimeout(() => {
-							dfs(nodes)
+						dfs(nodes)
 						}, 500)
-					})
+					// })
 				} else {
 					// if(pairStorage.length > 0) {
-						// pairStorage.shift()
+					// pairStorage.shift()
 					// } else {
-						nodes.shift()
-					// }
-					console.log('pair', pairStorage)
-					console.log('nodes', nodes)
-					this.coords = nodes[0]
-					setTimeout(() => {
+					nodes.shift()
+					if (nodes.length > 0) {
+						// console.log('pair', pairStorage)
+						console.log('nodes', nodes)
+						this.coords = nodes[0]
+						this.checkAllCoordsActive()
+						this.metalList = this.getMetalList()
+						setTimeout(() => {
 						dfs(nodes)
-					}, 500)
+						}, 500)
+					}
+					// }
+
 				}
 			} else {
 				alert('no solution')
@@ -241,6 +250,15 @@ class Game {
 
 		dfs(nodeStorage)
 
+	}
+	getMetalList() {
+		let quicksilverCount = 0
+		this.coordsToPlace.forEach(coo => {
+			if (coo.pinball && coo.pinball.element === 'quicksilver') {
+				quicksilverCount--
+			}
+		})
+		return ['lead', 'tin', 'iron', 'copper', 'silver', 'gold'].slice(quicksilverCount - 1)
 	}
 	getMatchPairs() {
 		let result = []
@@ -374,29 +392,29 @@ function getCoordsAround(coord) {
 	if (index === 0 && circle === 0) {
 		// 0, 0
 		result = [{
-				circle: 1,
-				index: 0
-			},
-			{
-				circle: 1,
-				index: 1
-			},
-			{
-				circle: 1,
-				index: 2
-			},
-			{
-				circle: 1,
-				index: 3
-			},
-			{
-				circle: 1,
-				index: 4
-			},
-			{
-				circle: 1,
-				index: 5
-			},
+			circle: 1,
+			index: 0
+		},
+		{
+			circle: 1,
+			index: 1
+		},
+		{
+			circle: 1,
+			index: 2
+		},
+		{
+			circle: 1,
+			index: 3
+		},
+		{
+			circle: 1,
+			index: 4
+		},
+		{
+			circle: 1,
+			index: 5
+		},
 		]
 	} else if (index % circle === 0) {
 		// vertex coord
@@ -420,7 +438,7 @@ function getCoordsAround(coord) {
 		}, {
 			circle: circle + 1,
 			index: index + vertex
-		}, ].map(coordsFix)
+		},].map(coordsFix)
 
 	} else {
 		// edge
