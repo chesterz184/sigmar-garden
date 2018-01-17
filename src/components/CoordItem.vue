@@ -1,5 +1,5 @@
 <template>
-   <div @click="onClick" class="coord-item" :class="{active: coord.active && coord.pinball, selected: coord.selected}" :style="'transform: translate(' + transX + 'px, ' + transY + 'px)'">
+   <div @click="onClick" class="coord-item" :class="{active: coord.active && coord.pinball, selected: coord.selected}" :style="'transform: translate(' + transX + 'px, ' + transY + 'px)'" :data-coo="coord.circle + ', ' + coord.index">
 		<img v-if="coord.pinball" :src="src" alt="">
 	</div>
 </template>

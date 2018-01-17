@@ -71,7 +71,9 @@ class Game {
 			}
 		}
 	}
-	doMatch([a, b]) {
+	doMatch([aa, bb]) {
+		let a = this.coords[aa.circle][aa.index],
+			b = bb ? this.coords[bb.circle][bb.index] : null
 		if (a.pinball.element === 'gold') {
 			a.removePinball()
 		} else {
@@ -197,32 +199,44 @@ class Game {
 		let nodeStorage = [],
 			pairStorage = [],
 			startLayout = copyCoords(this.coords)
-		nodeStorage.push(startLayout)
+		nodeStorage.push([startLayout, this.getMatchPairs()])
 		console.log(nodeStorage)
 
 		let dfs = nodes => {
 			if (nodes.length > 0) {
-				if (this.getMatchPairs().length > 0) {
-					console.log('matches', this.getMatchPairs())
-					// this.getMatchPairs().forEach((pair, idx) => {
-						let pair = this.getMatchPairs()[0]
-						// pairStorage.unshift(pair)
-						// nodes.unshift(copyCoords(this.coords))
-						// console.log('pair', pairStorage)
-						// console.log('idx', idx)
-						this.doMatch(pair)
-						if (this.win) {
-							alert('has solution')
-							this.coords = startLayout
-							nodes = []
-							return
-						}
-						nodes.unshift(copyCoords(this.coords))
-						console.log('nodes', nodes)
-						setTimeout(() => {
-						dfs(nodes)
-						}, 500)
+				let matchPairs = nodes[0][1]
+				console.log('matchedPairs', matchPairs)
+				if (matchPairs.length > 0) {
+					// matchPairs.forEach(p => {
+					// 	let shifted = false
+
+					// 	pairStorage.unshift(p)
 					// })
+
+					let pair = matchPairs.shift()
+					console.log('pair', pair)
+
+					// console.log('idx', idx)
+					this.doMatch(pair)
+
+					if (this.win) {
+						alert('has solution')
+						this.coords = startLayout
+						nodes = []
+						return
+					}
+					if(this.getMatchPairs().length > 0) {
+						console.log(this.getMatchPairs().length)
+						nodes.unshift([copyCoords(this.coords), this.getMatchPairs()])
+						console.log('unshifted nodes', nodes)
+					}
+					
+					console.log('nodes', nodes)
+					setTimeout(() => {
+						dfs(nodes)
+					}, 1000)
+
+
 				} else {
 					// if(pairStorage.length > 0) {
 					// pairStorage.shift()
@@ -230,13 +244,13 @@ class Game {
 					nodes.shift()
 					if (nodes.length > 0) {
 						// console.log('pair', pairStorage)
-						console.log('nodes', nodes)
-						this.coords = nodes[0]
+						console.log('shifted nodes', nodes)
+						this.coords = nodes[0][0]
 						this.checkAllCoordsActive()
 						this.metalList = this.getMetalList()
 						setTimeout(() => {
-						dfs(nodes)
-						}, 500)
+							dfs(nodes)
+						}, 1000)
 					}
 					// }
 
@@ -265,9 +279,18 @@ class Game {
 		this.activeCoords.forEach((coo, idx, arr) => {
 			for (let i = idx + 1; i < arr.length; i++) {
 				if (coo.pinball.element === 'gold') {
-					result.push([coo])
+					result.push([{
+						circle: coo.circle,
+						index: coo.index
+					}])
 				} else if (this.match(coo.pinball, arr[i].pinball)) {
-					result.push([coo, arr[i]])
+					result.push([{
+						circle: coo.circle,
+						index: coo.index
+					}, {
+						circle: arr[i].circle,
+						index: arr[i].index
+					}])
 				}
 			}
 		})
@@ -392,29 +415,29 @@ function getCoordsAround(coord) {
 	if (index === 0 && circle === 0) {
 		// 0, 0
 		result = [{
-			circle: 1,
-			index: 0
-		},
-		{
-			circle: 1,
-			index: 1
-		},
-		{
-			circle: 1,
-			index: 2
-		},
-		{
-			circle: 1,
-			index: 3
-		},
-		{
-			circle: 1,
-			index: 4
-		},
-		{
-			circle: 1,
-			index: 5
-		},
+				circle: 1,
+				index: 0
+			},
+			{
+				circle: 1,
+				index: 1
+			},
+			{
+				circle: 1,
+				index: 2
+			},
+			{
+				circle: 1,
+				index: 3
+			},
+			{
+				circle: 1,
+				index: 4
+			},
+			{
+				circle: 1,
+				index: 5
+			},
 		]
 	} else if (index % circle === 0) {
 		// vertex coord
@@ -438,7 +461,7 @@ function getCoordsAround(coord) {
 		}, {
 			circle: circle + 1,
 			index: index + vertex
-		},].map(coordsFix)
+		}, ].map(coordsFix)
 
 	} else {
 		// edge

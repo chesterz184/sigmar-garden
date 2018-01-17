@@ -2,7 +2,7 @@
 	<div id="app">
 		<button class="btn-start" @click="initGame">new game</button>
 		<button class="btn-start" @click="debug" >solve</button>
-		<template v-for="circle in game.coords">
+		<template v-for="circle in coords">
 			<coord-item v-for="(item, index) in circle" :key="item.circle.toString() + index" :coord="item" @click-coord="onClickCoord(item)"></coord-item>
 		</template>
 	</div>
@@ -35,12 +35,16 @@ export default {
 	mounted: function () {
 		this.game = new Game()
 		this.initGame()
+
+		setInterval(() => {
+			this.coords = this.game.coords
+		}, 100);
 	},
 	methods: {
 		initGame: function () {
 			console.log(this.game)
 			this.game.newGame()
-			// this.coords = this.game.coords
+			this.coords = this.game.coords
 			
 		},
 		onClickCoord: function (coord) {
