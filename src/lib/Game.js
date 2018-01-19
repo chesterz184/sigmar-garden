@@ -38,7 +38,8 @@ class Game {
 					this.doMatch([this.selectedCoord, coord])
 				} else { //don't match
 					this.selectedCoord.selected = false
-					this.selectedCoord = null
+					coord.selected = true
+					this.selectedCoord = coord
 				}
 			}
 		}
@@ -46,16 +47,6 @@ class Game {
 	get select() {
 		return this.selectedCoord
 	}
-	// get activeCoords() {
-	// 	let activeCoords = []
-	// 	this.coordsToPlace.forEach(c => {
-	// 		if (c.active) {
-	// 			activeCoords.push(c)
-	// 		}
-	// 	})
-	// 	console.log(activeCoords)
-	// 	return activeCoords
-	// }
 	winCheck() {
 		if (this.checkAllCoordsActive().length === 0) {
 			return true
@@ -65,11 +56,30 @@ class Game {
 	test() {
 		if (this.activeCoords.length > 9 || this.activeCoords.length < 5) {
 			this.newGame()
+		} else if (!this.testActiveCoords()) {
+			this.newGame()
 		} else {
-			if (!this.testActiveCoords()) {
-				this.newGame()
-			}
+			//protect lead // probably pointless
+			this.coords.forEach(circle => {
+				circle.forEach(c => {
+					if (c.pinball && c.pinball.element === 'lead') {
+						let count = 0,
+							around = getCoordsAround(c)
+						around.forEach(cc => {
+							if (cc.circle < config.circles) {
+								if (this.coords[cc.circle][cc.index].pinball && (this.coords[cc.circle][cc.index].pinball.type === 'metal' || this.coords[cc.circle][cc.index].pinball.element === 'quicksilver')) {
+									count++
+								}
+							}
+						})
+						if (count > 2) {
+							this.newGame()
+						}
+					}
+				})
+			})
 		}
+
 	}
 	doMatch([aa, bb]) {
 		let a = this.coords[aa.circle][aa.index],
@@ -194,67 +204,99 @@ class Game {
 		return result
 	}
 
+
+
+
+
+
+	//todo
 	solve() {
 		console.log('solving. . .')
 		let nodeStorage = [],
 			pairStorage = [],
 			startLayout = copyCoords(this.coords)
-		nodeStorage.push([startLayout, this.getMatchPairs()])
-		console.log(nodeStorage)
+		nodeStorage.push([this.coords, this.getMatchPairs()])
 
+		let step = 0
+		// console.log(nodeStorage)
 		let dfs = nodes => {
+			// console.log(nodes)
 			if (nodes.length > 0) {
+				this.coords = copyCoords(nodes[0][0])
+				this.checkAllCoordsActive()
+				this.metalList = this.getMetalList()
+
 				let matchPairs = nodes[0][1]
-				console.log('matchedPairs', matchPairs)
-				if (matchPairs.length > 0) {
-					// matchPairs.forEach(p => {
-					// 	let shifted = false
-
-					// 	pairStorage.unshift(p)
-					// })
-
-					let pair = matchPairs.shift()
-					console.log('pair', pair)
-
-					// console.log('idx', idx)
-					this.doMatch(pair)
-
-					if (this.win) {
-						alert('has solution')
-						this.coords = startLayout
-						nodes = []
-						return
-					}
-					if(this.getMatchPairs().length > 0) {
-						console.log(this.getMatchPairs().length)
-						nodes.unshift([copyCoords(this.coords), this.getMatchPairs()])
-						console.log('unshifted nodes', nodes)
-					}
-					
-					console.log('nodes', nodes)
-					setTimeout(() => {
-						dfs(nodes)
-					}, 1000)
-
-
-				} else {
-					// if(pairStorage.length > 0) {
-					// pairStorage.shift()
-					// } else {
+				// console.log(JSON.stringify(matchPairs))
+				if (pairStorage.indexOf(JSON.stringify(matchPairs)) !== -1) {
 					nodes.shift()
+					console.log(step--)
+					// console.log('shifted nodes', nodes)
 					if (nodes.length > 0) {
 						// console.log('pair', pairStorage)
-						console.log('shifted nodes', nodes)
 						this.coords = nodes[0][0]
 						this.checkAllCoordsActive()
 						this.metalList = this.getMetalList()
-						setTimeout(() => {
-							dfs(nodes)
-						}, 1000)
+						// setTimeout(() => {
+						dfs(nodes)
+						// }, 100)
 					}
-					// }
+				} else {
+					pairStorage.push(JSON.stringify(matchPairs))
 
+					// console.log('matchedPairs', matchPairs.length)
+					if (matchPairs.length > 0) {
+						// matchPairs.forEach(p => {
+						// 	let shifted = false
+
+						// 	pairStorage.unshift(p)
+						// })
+
+						let pair = matchPairs.shift()
+						// console.log('pair', pair)
+						// console.log('idx', idx)
+						this.doMatch(pair)
+						console.log(step++)
+
+						if (this.win) {
+							alert('has solution')
+							this.coords = startLayout
+							nodes = []
+							return
+						}
+						if (this.getMatchPairs().length > 0) {
+							nodes.unshift([copyCoords(this.coords), this.getMatchPairs()])
+							// console.log('unshifted nodes', nodes)
+						} else {
+							console.log(step--)
+						}
+						// setTimeout(() => {
+						dfs(nodes)
+						// }, 100)
+
+
+					} else {
+						// if(pairStorage.length > 0) {
+						// pairStorage.shift()
+						// } else {
+						// console.log('nodes before shifted', nodes)
+						nodes.shift()
+						console.log(step--)
+						// console.log('shifted nodes', nodes)
+						if (nodes.length > 0) {
+							// console.log('pair', pairStorage)
+							this.coords = nodes[0][0]
+							this.checkAllCoordsActive()
+							this.metalList = this.getMetalList()
+							// setTimeout(() => {
+							dfs(nodes)
+							// }, 100)
+						}
+						// }
+
+					}
 				}
+
 			} else {
 				alert('no solution')
 				this.coords = startLayout
@@ -298,6 +340,9 @@ class Game {
 		return result
 	}
 }
+
+
+
 
 export default Game
 
