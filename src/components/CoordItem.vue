@@ -1,6 +1,6 @@
 <template>
    <div @click="onClick" class="coord-item" :class="{active: coord.active && coord.pinball, selected: coord.selected, shadow: coord.pinball}" :style="style" :data-coo="coord.circle + ', ' + coord.index">
-		<img :src="hoverImg" alt="hover" class="atom-hover">
+		<img src="/textures/hovered.png" alt="hover" class="atom-hover">
 		<div class="atom-container">
 			<img v-if="coord.pinball" :src="src" alt="">
 		</div>
@@ -16,9 +16,6 @@ export default {
 	computed: {
 		src() {
 			return `./textures/atoms/${this.coord.pinball.element}.png`
-		},
-		hoverImg() {
-			return './textures/hovered.png'
 		},
 		transX() {
 			let { circle, index } = this.coord

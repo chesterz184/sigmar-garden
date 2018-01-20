@@ -64,7 +64,7 @@ module.exports = {
         test: /\.(png|jpg|gif|svg)$/,
         loader: 'file-loader',
         options: {
-          name: 'textures/[name].[ext]?[hash]'
+          name: '[name].[ext]?[hash]'
         }
       }
     ]

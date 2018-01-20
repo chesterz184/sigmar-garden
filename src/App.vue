@@ -3,7 +3,7 @@
 		<!-- <button class="btn-start" @click="debug" >solve</button> -->
 		<h1>Sigma's Garden</h1>
 		<div class="board-container">
-			<img src="../textures/board.png" alt="board" class="board">
+			<img src="/textures/board.png" alt="board" class="board">
 			<template v-for="circle in coords">
 				<coord-item v-for="(item, index) in circle" :key="item.circle.toString() + index" :coord="item" :hexRadius="hexRadius" @click-coord="onClickCoord(item)"></coord-item>
 			</template>
@@ -37,7 +37,9 @@ export default {
 			}
 		}
 	},
-	computed: {},
+	computed: {
+
+	},
 	mounted: function () {
 		this.hexRadius = window.innerWidth >= 1000 ? this.baseHexRadius : this.baseHexRadius * window.innerWidth / 1000
 		window.onresize = () => {
@@ -77,7 +79,7 @@ body {
   margin: 0;
   padding: 0;
   //   background: rgb(189, 180, 150);
-  background: url("../textures/background_5.jpg") no-repeat center top black;
+  background: url("/textures/background_5.jpg") no-repeat center top black;
   background-size: auto 100%;
 }
 
@@ -87,10 +89,10 @@ body {
 }
 
 h1 {
-	font-family:  serif;
-	font-size: 10vw;
-	margin: 40px 0 60px 0;
-	color: rgb(201, 185, 143);
+  font-family: serif;
+  font-size: 10vw;
+  margin: 40px 0 60px 0;
+  color: rgb(201, 185, 143);
 }
 .board-container {
   text-align: center;
@@ -107,22 +109,22 @@ h1 {
   width: 841px;
   //   background: #000;
   button {
-    background: url("../textures/btn_bg.png") no-repeat;
+    background: url("/textures/btn_bg.png") no-repeat;
     background-size: 100% 100%;
     color: #111;
-	 font-family: serif;
-	 font-weight: bold;
-	 font-size: 1.5vw;
-	 text-shadow: 0 0 6px rgba(0, 0, 0, 0.479);
+    font-family: serif;
+    font-weight: bold;
+    font-size: 16px;
+    text-shadow: 0 0 6px rgba(0, 0, 0, 0.479);
     position: absolute;
-	 border: 0;
-	 height: 100%;
-	 width: 16.5%;
-	 left: 0.6%;
+    border: 0;
+    height: 100%;
+    width: 16.5%;
+    left: 0.6%;
     z-index: 1;
   }
   button:hover {
-    background-image: url("../textures/btn_bg_hover.png");
+    background-image: url("/textures/btn_bg_hover.png");
   }
 }
 .board {
@@ -137,6 +139,10 @@ h1 {
   .board-footer {
     width: 84.1%;
     height: 5.54vw;
+		button {
+			font-size: 1.5vw;
+		}
   }
+
 }
 </style>
