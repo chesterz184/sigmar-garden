@@ -192,17 +192,6 @@ class Game {
 
 		return result
 	}
-	// testActiveCoords() {
-	// 	let result = false
-	// 	this.activeCoords.forEach((coo, idx, arr) => {
-	// 		for (let i = idx + 1; i < arr.length; i++) {
-	// 			if (this.match(coo.pinball, arr[i].pinball)) {
-	// 				result = true
-	// 			}
-	// 		}
-	// 	})
-	// 	return result
-	// }
 	getMetalList() {
 		let quicksilverCount = 0
 		this.coordsToPlace.forEach(coo => {
@@ -211,6 +200,9 @@ class Game {
 			}
 		})
 		return ['lead', 'tin', 'iron', 'copper', 'silver', 'gold'].slice(quicksilverCount - 1)
+	}
+	getAtomStatus() {
+		
 	}
 
 

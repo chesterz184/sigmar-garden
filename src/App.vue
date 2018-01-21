@@ -30,13 +30,15 @@
 </template>
 
 <script>
-import CoordItem from "./components/CoordItem"
+import CoordItem from './components/CoordItem'
+import CoordStatus from './components/CoordStatus'
 import Game from "./lib/Game"
 
 export default {
 	name: "app",
 	components: {
-		CoordItem
+		CoordItem,
+		CoordStatus
 	},
 	data() {
 		return {
@@ -49,6 +51,9 @@ export default {
 		}
 	},
 	computed: {
+		wins() {
+
+		},
 		bg() {
 			return 'background-image: url(./textures/background_5.jpg)'
 		},
