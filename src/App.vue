@@ -59,7 +59,7 @@ export default {
 			return 'background-image: url(./textures/help.png)'
 		},
 		boardBg() {
-			return 'background-image: url(./textures/board.png)'
+			return 'background-image: url(./textures/board.jpg)'
 		},
 		helpContent() {
 			return './textures/help_content.jpg'
