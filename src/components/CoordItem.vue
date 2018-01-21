@@ -1,8 +1,10 @@
 <template>
    <div @click="onClick" class="coord-item" :class="{active: coord.active && coord.pinball, selected: coord.selected, shadow: coord.pinball}" :style="style" :data-coo="coord.circle + ', ' + coord.index">
-		<img src="/textures/hovered.png" alt="hover" class="atom-hover">
+		<img :src="hovered" alt="hover" class="atom-hover">
 		<div class="atom-container">
+			<!-- <transition name="fade"> -->
 			<img v-if="coord.pinball" :src="src" alt="">
+			<!-- </transition> -->
 		</div>
 	</div>
 </template>
@@ -16,6 +18,9 @@ export default {
 	computed: {
 		src() {
 			return `./textures/atoms/${this.coord.pinball.element}.png`
+		},
+		hovered() {
+			return './textures/hovered.png'
 		},
 		transX() {
 			let { circle, index } = this.coord
@@ -180,4 +185,14 @@ export default {
 .coord-item.selected .atom-hover {
   opacity: 0.4;
 }
+
+// .fade-enter-active,
+//  {
+//   transition: all 0.5s;
+// }
+// .fade-enter,
+// {
+// 	filter: brightness(2) contrast(2);
+//   opacity: 0;
+// }
 </style>

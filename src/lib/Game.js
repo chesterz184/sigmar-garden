@@ -56,7 +56,7 @@ class Game {
 	test() {
 		if (this.activeCoords.length > 9 || this.activeCoords.length < 5) {
 			this.newGame()
-		} else if (!this.testActiveCoords()) {
+		} else if (this.getMatchPairs().length === 0) {
 			this.newGame()
 		} else {
 			//protect lead // probably pointless
@@ -192,18 +192,26 @@ class Game {
 
 		return result
 	}
-	testActiveCoords() {
-		let result = false
-		this.activeCoords.forEach((coo, idx, arr) => {
-			for (let i = idx + 1; i < arr.length; i++) {
-				if (this.match(coo.pinball, arr[i].pinball)) {
-					result = true
-				}
+	// testActiveCoords() {
+	// 	let result = false
+	// 	this.activeCoords.forEach((coo, idx, arr) => {
+	// 		for (let i = idx + 1; i < arr.length; i++) {
+	// 			if (this.match(coo.pinball, arr[i].pinball)) {
+	// 				result = true
+	// 			}
+	// 		}
+	// 	})
+	// 	return result
+	// }
+	getMetalList() {
+		let quicksilverCount = 0
+		this.coordsToPlace.forEach(coo => {
+			if (coo.pinball && coo.pinball.element === 'quicksilver') {
+				quicksilverCount--
 			}
 		})
-		return result
+		return ['lead', 'tin', 'iron', 'copper', 'silver', 'gold'].slice(quicksilverCount - 1)
 	}
-
 
 
 
@@ -306,15 +314,6 @@ class Game {
 
 		dfs(nodeStorage)
 
-	}
-	getMetalList() {
-		let quicksilverCount = 0
-		this.coordsToPlace.forEach(coo => {
-			if (coo.pinball && coo.pinball.element === 'quicksilver') {
-				quicksilverCount--
-			}
-		})
-		return ['lead', 'tin', 'iron', 'copper', 'silver', 'gold'].slice(quicksilverCount - 1)
 	}
 	getMatchPairs() {
 		let result = []

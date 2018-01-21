@@ -15,8 +15,16 @@ Array.prototype.shuffle = function () {
 	}
 	return input
 }
+//flatten array
+Array.prototype.flatten = function () {
+	let arr = this
+	while (arr.some(item => Array.isArray(item))) {
+		arr = [].concat(...arr)
+	}
+	return arr
+}
 
 new Vue({
-  el: '#app',
-  render: h => h(App)
+	el: '#app',
+	render: h => h(App)
 })
