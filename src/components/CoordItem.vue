@@ -13,14 +13,13 @@
 export default {
 	props: ["coord", "hexRadius"],
 	data() {
-		return {}
+		return {
+			hovered: './textures/hovered.png'
+		}
 	},
 	computed: {
 		src() {
 			return `./textures/atoms/${this.coord.pinball.element}.png`
-		},
-		hovered() {
-			return './textures/hovered.png'
 		},
 		transX() {
 			let { circle, index } = this.coord

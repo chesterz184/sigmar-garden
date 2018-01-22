@@ -201,8 +201,31 @@ class Game {
 		})
 		return ['lead', 'tin', 'iron', 'copper', 'silver', 'gold'].slice(quicksilverCount - 1)
 	}
-	getAtomStatus() {
-		
+	static getAtomStatus(coords) {
+		let result = {
+			salt: { element: 'salt', count: 0, showCount: true, oddWarn: false},
+			air: { element: 'air', count: 0, showCount: true, oddWarn: true},
+			fire: { element: 'fire', count: 0, showCount: true, oddWarn: true},
+			water: { element: 'water', count: 0, showCount: true, oddWarn: true},
+			earth: { element: 'earth', count: 0, showCount: true, oddWarn: true},
+			quicksilver: { element: 'quicksilver', count: 0, showCount: true, oddWarn: false},
+			lead: { element: 'lead', count: 0, showCount: false, oddWarn: false},
+			tin: { element: 'tin', count: 0, showCount: false, oddWarn: false},
+			iron: { element: 'iron', count: 0, showCount: false, oddWarn: false},
+			copper: { element: 'copper', count: 0, showCount: false, oddWarn: false},
+			silver: { element: 'silver', count: 0, showCount: false, oddWarn: false},
+			gold: { element: 'gold', count: 0, showCount: false, oddWarn: false},
+			
+			vitae: { element: 'vitae', count: 0, showCount: false, oddWarn: false},
+			mors: { element: 'mors', count: 0, showCount: false, oddWarn: false},
+		}
+		coords.forEach( coo => {
+			if(coo.pinball) {
+				// console.log(coo.pinball.element)
+				result[coo.pinball.element].count += 1
+			}
+		})
+		return result
 	}
 
 

@@ -14,7 +14,24 @@
 				<!-- </template> -->
 				<div class="board-footer">
 					<button :style="btnBg" class="btn-start" :class="{disabled: isRendering}" @click="initGame">NEW GAME</button>
-					<div class="status-bar"></div>
+					<div class="status-bar">
+						<coord-status :status="status.salt"></coord-status>
+						<span class="status-divide">|</span>
+						<coord-status :status="status.air"></coord-status>
+						<coord-status :status="status.fire"></coord-status>
+						<coord-status :status="status.water"></coord-status>
+						<coord-status :status="status.earth"></coord-status>
+						<span class="status-divide">|</span>
+						<coord-status :status="status.quicksilver"></coord-status>
+						<span class="status-divide">|</span>
+						<coord-status :status="status.lead"></coord-status>
+						<coord-status :status="status.tin"></coord-status>
+						<coord-status :status="status.iron"></coord-status>
+						<coord-status :status="status.copper"></coord-status>
+						<coord-status :status="status.silver"></coord-status>
+						<coord-status :status="status.gold"></coord-status>
+		
+					</div>
 					<button :style="helpBg" class="btn-help" @click="showHelp = true"></button>
 					<div class="record">
 						<span>WINS</span>
@@ -45,30 +62,42 @@ export default {
 			percent: 22.073490813648,
 			hexRadius: 38.1,
 			coords: [], //all the coords on board to be rendered
+			status: {
+				salt: { element: 'salt', count: 0, showCount: true, oddWarn: false },
+				air: { element: 'air', count: 0, showCount: true, oddWarn: true },
+				fire: { element: 'fire', count: 0, showCount: true, oddWarn: true },
+				water: { element: 'water', count: 0, showCount: true, oddWarn: true },
+				earth: { element: 'earth', count: 0, showCount: true, oddWarn: true },
+				quicksilver: { element: 'quicksilver', count: 0, showCount: true, oddWarn: false },
+				lead: { element: 'lead', count: 0, showCount: false, oddWarn: false },
+				tin: { element: 'tin', count: 0, showCount: false, oddWarn: false },
+				iron: { element: 'iron', count: 0, showCount: false, oddWarn: false },
+				copper: { element: 'copper', count: 0, showCount: false, oddWarn: false },
+				silver: { element: 'silver', count: 0, showCount: false, oddWarn: false },
+				gold: { element: 'gold', count: 0, showCount: false, oddWarn: false },
+
+				vitae: { element: 'vitae', count: 0, showCount: false, oddWarn: false },
+				mors: { element: 'mors', count: 0, showCount: false, oddWarn: false },
+			},
 			showHelp: false,
 
-			isRendering: false
+			isRendering: false,
+
+			//imgs
+			bg: 'background-image: url(./textures/background_5.jpg)',
+			btnBg: 'background-image: url(./textures/btn_bg.png)',
+			helpBg: 'background-image: url(./textures/help.png)',
+			boardBg: 'background-image: url(./textures/board.jpg)',
+			helpContent: './textures/help_content.jpg'
+
 		}
 	},
 	computed: {
 		wins() {
 
 		},
-		bg() {
-			return 'background-image: url(./textures/background_5.jpg)'
-		},
-		btnBg() {
-			return 'background-image: url(./textures/btn_bg.png)'
-		},
-		helpBg() {
-			return 'background-image: url(./textures/help.png)'
-		},
-		boardBg() {
-			return 'background-image: url(./textures/board.jpg)'
-		},
-		helpContent() {
-			return './textures/help_content.jpg'
-		}
+
+
 	},
 	watch: {
 		"game.win": function (val) {
@@ -94,17 +123,19 @@ export default {
 	},
 	methods: {
 		initGame: function () {
-			if(this.isRendering) {
+			if (this.isRendering) {
 				return
 			}
 			this.coords = []
 			this.game.newGame()
-			
+
 			// new game animation in Opus Magnum
 			let idx = 0, flattenedCoords = this.game.coords.flatten()
 			let insert = () => {
-				if(this.coords.length < 91) {
+				if (this.coords.length < 91) {
 					this.coords.push(flattenedCoords[idx++])
+					this.status = Game.getAtomStatus(this.coords)
+					// console.log(this.status)
 					setTimeout(insert, 70)
 				} else {
 					this.isRendering = false
@@ -118,6 +149,8 @@ export default {
 		},
 		onClickCoord: function (coord) {
 			this.game.select = coord
+			this.status = Game.getAtomStatus(this.coords)
+			// console.log(this.status)
 			if (this.game.win) {
 				alert("you win !")
 			}
@@ -167,14 +200,14 @@ h1 {
     border: 0;
     height: 100%;
     z-index: 1;
-		&:hover {
-			filter: brightness(1.3);
-		text-shadow: none;
-    color: #eee;
-		}
-		&:focus {
-			outline: none;
-		}
+    &:hover {
+      filter: brightness(1.3);
+      text-shadow: none;
+      color: #eee;
+    }
+    &:focus {
+      outline: none;
+    }
   }
   .btn-start {
     background-color: black;
@@ -187,18 +220,23 @@ h1 {
     text-shadow: 0 1px 1px rgba(201, 185, 143, 0.3);
     width: 15.8%;
     margin: 0 0.7%;
-		&.disabled{
-			filter: brightness(.5);
-			&:hover {
-				color: #111;
-				text-shadow: none;
-			}
-		}
+    &.disabled {
+      filter: brightness(0.5);
+      &:hover {
+        color: #111;
+        text-shadow: none;
+      }
+    }
   }
   .status-bar {
     width: 64%;
     margin: 0 0.7%;
-    background: #eee;
+    // background: #eee;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: space-around;
   }
   .btn-help {
     background-color: black;
@@ -249,21 +287,19 @@ h1 {
   max-width: 99.854881266491vh;
 }
 .help-content {
-	position: absolute;
-	top: 50%;
-	left: 50%;
-	transform: translate(-50%, -50%);
-	max-width: 90vw;
-	z-index: 2;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  max-width: 90vw;
+  z-index: 2;
 }
 
-.fade-enter-active,
- {
+.fade-enter-active {
   transition: all 0.5s;
 }
-.fade-enter,
-{
-	filter: brightness(2) contrast(1.3);
+.fade-enter {
+  filter: brightness(2) contrast(1.3);
   opacity: 0;
 }
 </style>
