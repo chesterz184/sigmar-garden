@@ -4,7 +4,7 @@ This is a clone of the mini-game Sigmar's Garden from the game [Opus Magnum](htt
 
 You can [play it here](https://chesterz184.github.io/sigmar-garden/).
 
-All textures were exported from the original game. Thanks to the devs for the great game.
+All textures were exported from the original game. Thanks to the devs for such a great game!
 
 
 ## usage
@@ -18,6 +18,10 @@ All textures were exported from the original game. Thanks to the devs for the gr
 
 ## todo
 
-Wins record storage
+Wins record
+
 Solver
+
+Additional render effects from the original game
+
 ...
