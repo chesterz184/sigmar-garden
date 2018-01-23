@@ -3,7 +3,7 @@
 		<!-- <button class="btn-start" @click="debug" >solve</button> -->
 		<!-- <div class="board-container"> -->
 			<!-- <img src="/textures/board.png" alt="board" class="board"> -->
-		<!-- <h1>Sigma's Garden</h1> -->
+		<!-- <h1>Sigmar's Garden</h1> -->
 			<div class="board" :style="boardBg">
 				<!-- <template v-for="circle in coords"> -->
 					<transition-group name="fade">
