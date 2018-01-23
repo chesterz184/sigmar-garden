@@ -1,5 +1,5 @@
 <template>
-  <div class="coord-status-container" :style="style">
+  <div class="coord-status-container" :style="style" :class="{fade: status.count === 0}">
      <span class="num-left" :class="{warning: status.oddWarn && status.count % 2 === 1}">{{status.showCount ? status.count : ''}}</span>
   </div>
 </template>
@@ -13,7 +13,7 @@ export default {
      }
   },
   mounted: function() {
-    console.log(this.status) 
+    
   },
   computed: {
     style() {
@@ -35,11 +35,14 @@ export default {
      font-size: 80%;
       color: #eee;
       position: absolute;
-      right: -8%;
-      top: -8%;
+      right: -10%;
+      top: -10%;
       &.warning {
         color: red;
       }
+   }
+   &.fade {
+     filter: brightness(0.5);
    }
 }
 </style>

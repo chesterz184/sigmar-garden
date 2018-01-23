@@ -12,8 +12,8 @@
 
 					</transition-group>
 				<!-- </template> -->
-				<div class="board-footer">
-					<button :style="btnBg" class="btn-start" :class="{disabled: isRendering}" @click="initGame">NEW GAME</button>
+				<div class="board-footer" :style="'font-size: ' + hexRadius / 2.6 + 'px'">
+					<button :style="btnBg + ';font-size: ' + hexRadius / 2.6 + 'px'" class="btn-start" :class="{disabled: isRendering}" @click="initGame">NEW GAME</button>
 					<div class="status-bar">
 						<coord-status :status="status.salt"></coord-status>
 						<span class="status-divide">|</span>
@@ -32,10 +32,10 @@
 						<coord-status :status="status.gold"></coord-status>
 		
 					</div>
-					<button :style="helpBg" class="btn-help" @click="showHelp = true"></button>
+					<button :style="helpBg" class="btn-help" @click="showHelp = true" ></button>
 					<div class="record">
 						<span>WINS</span>
-						<span>0</span>
+						<span>{{wins}}</span>
 					</div>
 				</div>
 			</div>
@@ -61,6 +61,7 @@ export default {
 		return {
 			percent: 22.073490813648,
 			hexRadius: 38.1,
+			wins: 0,
 			coords: [], //all the coords on board to be rendered
 			status: {
 				salt: { element: 'salt', count: 0, showCount: true, oddWarn: false },
@@ -91,13 +92,6 @@ export default {
 			helpContent: './textures/help_content.jpg'
 
 		}
-	},
-	computed: {
-		wins() {
-
-		},
-
-
 	},
 	watch: {
 		"game.win": function (val) {
@@ -145,6 +139,12 @@ export default {
 			this.isRendering = true
 			insert()
 
+			if(!localStorage.getItem('wins')) {
+				localStorage.setItem('wins', 0)
+			} else {
+				this.wins = localStorage.getItem('wins')
+			}
+
 			// this.coords = this.game.coords
 		},
 		onClickCoord: function (coord) {
@@ -152,7 +152,7 @@ export default {
 			this.status = Game.getAtomStatus(this.coords)
 			// console.log(this.status)
 			if (this.game.win) {
-				alert("you win !")
+				localStorage.setItem('wins', ++ this.wins)
 			}
 		},
 
@@ -179,12 +179,6 @@ body {
   background: no-repeat center center black;
   background-size: cover;
   text-align: center;
-}
-
-h1 {
-  margin: 0;
-  font-size: 90px;
-  color: rgb(201, 185, 143);
 }
 
 .board-footer {
@@ -215,7 +209,6 @@ h1 {
     background-size: 100% 100%;
     color: #111;
     font-weight: bold;
-    font-size: 16px;
     font-family: $font;
     text-shadow: 0 1px 1px rgba(201, 185, 143, 0.3);
     width: 15.8%;
@@ -253,8 +246,9 @@ h1 {
     justify-content: space-between;
     span {
       height: 45%;
-      font-size: 90%;
-      line-height: 2;
+			display: flex;
+			justify-content: center;
+			align-items: center;
     }
     span:first-child {
       color: #ada69c;

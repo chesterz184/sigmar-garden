@@ -24,6 +24,8 @@ Array.prototype.flatten = function () {
 	return arr
 }
 
+const localStorage = window.localStorage
+
 new Vue({
 	el: '#app',
 	render: h => h(App)
