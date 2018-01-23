@@ -22,6 +22,8 @@ Wins record
 
 Solver
 
-Additional render effects from the original game
+Additional render effects
+
+Sound ?
 
 ...
