@@ -18,6 +18,7 @@ class Game {
 		this.activeCoords = this.checkAllCoordsActive()
 		this.test()
 	}
+	//selected coord
 	set select(coord) {
 		if (coord.active && coord.pinball !== null) {
 			//nothing selected
@@ -46,12 +47,6 @@ class Game {
 	}
 	get select() {
 		return this.selectedCoord
-	}
-	winCheck() {
-		if (this.checkAllCoordsActive().length === 0) {
-			return true
-		}
-		return false
 	}
 	test() {
 		if (this.activeCoords.length > 9 || this.activeCoords.length < 5) {
@@ -94,7 +89,7 @@ class Game {
 			b.removePinball()
 			this.selectedCoord = null
 		}
-		this.win = this.winCheck()
+		this.win = this.checkAllCoordsActive().length === 0 ? true : false
 	}
 	match(a, b) {
 		switch (a.type) {
@@ -203,24 +198,94 @@ class Game {
 	}
 	static getAtomStatus(coords) {
 		let result = {
-			salt: { element: 'salt', count: 0, showCount: true, oddWarn: false},
-			air: { element: 'air', count: 0, showCount: true, oddWarn: true},
-			fire: { element: 'fire', count: 0, showCount: true, oddWarn: true},
-			water: { element: 'water', count: 0, showCount: true, oddWarn: true},
-			earth: { element: 'earth', count: 0, showCount: true, oddWarn: true},
-			quicksilver: { element: 'quicksilver', count: 0, showCount: true, oddWarn: false},
-			lead: { element: 'lead', count: 0, showCount: false, oddWarn: false},
-			tin: { element: 'tin', count: 0, showCount: false, oddWarn: false},
-			iron: { element: 'iron', count: 0, showCount: false, oddWarn: false},
-			copper: { element: 'copper', count: 0, showCount: false, oddWarn: false},
-			silver: { element: 'silver', count: 0, showCount: false, oddWarn: false},
-			gold: { element: 'gold', count: 0, showCount: false, oddWarn: false},
-			
-			vitae: { element: 'vitae', count: 0, showCount: false, oddWarn: false},
-			mors: { element: 'mors', count: 0, showCount: false, oddWarn: false},
+			salt: {
+				element: 'salt',
+				count: 0,
+				showCount: true,
+				oddWarn: false
+			},
+			air: {
+				element: 'air',
+				count: 0,
+				showCount: true,
+				oddWarn: true
+			},
+			fire: {
+				element: 'fire',
+				count: 0,
+				showCount: true,
+				oddWarn: true
+			},
+			water: {
+				element: 'water',
+				count: 0,
+				showCount: true,
+				oddWarn: true
+			},
+			earth: {
+				element: 'earth',
+				count: 0,
+				showCount: true,
+				oddWarn: true
+			},
+			quicksilver: {
+				element: 'quicksilver',
+				count: 0,
+				showCount: true,
+				oddWarn: false
+			},
+			lead: {
+				element: 'lead',
+				count: 0,
+				showCount: false,
+				oddWarn: false
+			},
+			tin: {
+				element: 'tin',
+				count: 0,
+				showCount: false,
+				oddWarn: false
+			},
+			iron: {
+				element: 'iron',
+				count: 0,
+				showCount: false,
+				oddWarn: false
+			},
+			copper: {
+				element: 'copper',
+				count: 0,
+				showCount: false,
+				oddWarn: false
+			},
+			silver: {
+				element: 'silver',
+				count: 0,
+				showCount: false,
+				oddWarn: false
+			},
+			gold: {
+				element: 'gold',
+				count: 0,
+				showCount: false,
+				oddWarn: false
+			},
+
+			vitae: {
+				element: 'vitae',
+				count: 0,
+				showCount: false,
+				oddWarn: false
+			},
+			mors: {
+				element: 'mors',
+				count: 0,
+				showCount: false,
+				oddWarn: false
+			},
 		}
-		coords.forEach( coo => {
-			if(coo.pinball) {
+		coords.forEach(coo => {
+			if (coo.pinball) {
 				// console.log(coo.pinball.element)
 				result[coo.pinball.element].count += 1
 			}
@@ -237,101 +302,66 @@ class Game {
 		console.log('solving. . .')
 		let nodeStorage = [],
 			pairStorage = [],
-			startLayout = copyCoords(this.coords)
-		nodeStorage.push([this.coords, this.getMatchPairs()])
+			matchPairs = [],
+			startLayout = copyCoords(this.coords),
+			checked = false
+
+		nodeStorage.push({
+			board: this.coords,
+			pairs: this.getMatchPairs()
+		})
 
 		let step = 0
 		// console.log(nodeStorage)
 		let dfs = nodes => {
-			// console.log(nodes)
-			if (nodes.length > 0) {
-				this.coords = copyCoords(nodes[0][0])
+			console.log(step++)
+			if (!checked && nodes.length > 0) {
+				this.coords = copyCoords(nodes[0].board)
 				this.checkAllCoordsActive()
 				this.metalList = this.getMetalList()
-
-				let matchPairs = nodes[0][1]
-				// console.log(JSON.stringify(matchPairs))
-				if (pairStorage.indexOf(JSON.stringify(matchPairs)) !== -1) {
-					nodes.shift()
-					console.log(step--)
-					// console.log('shifted nodes', nodes)
-					if (nodes.length > 0) {
-						// console.log('pair', pairStorage)
-						this.coords = nodes[0][0]
-						this.checkAllCoordsActive()
-						this.metalList = this.getMetalList()
-						// setTimeout(() => {
-						dfs(nodes)
-						// }, 100)
-					}
-				} else {
-					pairStorage.push(JSON.stringify(matchPairs))
-
-					// console.log('matchedPairs', matchPairs.length)
-					if (matchPairs.length > 0) {
-						// matchPairs.forEach(p => {
-						// 	let shifted = false
-
-						// 	pairStorage.unshift(p)
-						// })
-
+				matchPairs = nodes[0].pairs
+				if (matchPairs.length > 0) {
+					if (pairStorage.indexOf(JSON.stringify(this.coords) + JSON.stringify(matchPairs)) === -1) {
+						pairStorage.push(JSON.stringify(this.coords) + JSON.stringify(matchPairs))
 						let pair = matchPairs.shift()
-						// console.log('pair', pair)
-						// console.log('idx', idx)
 						this.doMatch(pair)
-						console.log(step++)
-
 						if (this.win) {
-							alert('has solution')
+							alert('has solution!')
 							this.coords = startLayout
-							nodes = []
+							checked = true
 							return
 						}
 						if (this.getMatchPairs().length > 0) {
-							nodes.unshift([copyCoords(this.coords), this.getMatchPairs()])
-							// console.log('unshifted nodes', nodes)
-						} else {
-							console.log(step--)
+							nodes.unshift({
+								board: copyCoords(this.coords),
+								pairs: this.getMatchPairs()
+							})
 						}
-						// setTimeout(() => {
-						dfs(nodes)
-						// }, 100)
-
-
 					} else {
-						// if(pairStorage.length > 0) {
-						// pairStorage.shift()
-						// } else {
-						// console.log('nodes before shifted', nodes)
+						console.log('aaaaa')
 						nodes.shift()
-						console.log(step--)
-						// console.log('shifted nodes', nodes)
-						if (nodes.length > 0) {
-							// console.log('pair', pairStorage)
-							this.coords = nodes[0][0]
-							this.checkAllCoordsActive()
-							this.metalList = this.getMetalList()
-							// setTimeout(() => {
-							dfs(nodes)
-							// }, 100)
-						}
-						// }
-
 					}
+				} else {
+					console.log('bbbbb')
+					nodes.shift()
 				}
-
+				setTimeout(() => {
+					dfs(nodes)
+				}, 0)
 			} else {
-				alert('no solution')
+				alert('no solution!')
 				this.coords = startLayout
-				return
+				checked = true
 			}
 		}
 
 		dfs(nodeStorage)
 
+		
 	}
 	getMatchPairs() {
 		let result = []
+		//gold
 		this.activeCoords.forEach((coo, idx, arr) => {
 			for (let i = idx + 1; i < arr.length; i++) {
 				if (coo.pinball.element === 'gold') {
@@ -339,7 +369,55 @@ class Game {
 						circle: coo.circle,
 						index: coo.index
 					}])
-				} else if (this.match(coo.pinball, arr[i].pinball)) {
+				}
+			}
+		})
+
+		this.activeCoords.forEach((coo, idx, arr) => {
+			for (let i = idx + 1; i < arr.length; i++) {
+				if (coo.pinball.element === 'quicksilver' && this.match(coo.pinball, arr[i].pinball)) {
+					result.push([{
+						circle: coo.circle,
+						index: coo.index
+					}, {
+						circle: arr[i].circle,
+						index: arr[i].index
+					}])
+				}
+			}
+		})
+
+		this.activeCoords.forEach((coo, idx, arr) => {
+			for (let i = idx + 1; i < arr.length; i++) {
+				if (coo.pinball.type === 'set' && this.match(coo.pinball, arr[i].pinball)) {
+					result.push([{
+						circle: coo.circle,
+						index: coo.index
+					}, {
+						circle: arr[i].circle,
+						index: arr[i].index
+					}])
+				}
+			}
+		})
+
+		this.activeCoords.forEach((coo, idx, arr) => {
+			for (let i = idx + 1; i < arr.length; i++) {
+				if (coo.pinball.element === arr[i].pinball.element && this.match(coo.pinball, arr[i].pinball)) {
+					result.push([{
+						circle: coo.circle,
+						index: coo.index
+					}, {
+						circle: arr[i].circle,
+						index: arr[i].index
+					}])
+				}
+			}
+		})
+
+		this.activeCoords.forEach((coo, idx, arr) => {
+			for (let i = idx + 1; i < arr.length; i++) {
+				if (coo.pinball.element === 'salt' && this.match(coo.pinball, arr[i].pinball)) {
 					result.push([{
 						circle: coo.circle,
 						index: coo.index

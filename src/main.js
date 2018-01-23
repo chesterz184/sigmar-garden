@@ -1,6 +1,8 @@
 import Vue from 'vue'
 import App from './App.vue'
 
+import fastclick from 'fastclick'
+
 //shuffle Array
 Array.prototype.shuffle = function () {
 	var input = this
@@ -25,6 +27,8 @@ Array.prototype.flatten = function () {
 }
 
 const localStorage = window.localStorage
+
+fastclick.attach(document.body)
 
 new Vue({
 	el: '#app',

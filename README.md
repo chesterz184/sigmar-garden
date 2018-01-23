@@ -18,8 +18,6 @@ All textures were exported from the original game. Thanks to the devs for such a
 
 ## todo
 
-Wins record
-
 Solver
 
 Additional render effects

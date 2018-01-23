@@ -10,6 +10,7 @@
   "author": "chaz",
   "license": "ISC",
   "dependencies": {
+    "fastclick": "^1.0.6",
     "vue": "^2.5.11"
   },
   "browserslist": [
