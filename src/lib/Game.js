@@ -15,8 +15,11 @@ class Game {
 		this.coordsToPlace = generateCoordsArrange(this.coords)
 		placePinballs(this.coordsToPlace, createPinballs())
 		this.metalList = this.getMetalList()
-		this.activeCoords = this.checkAllCoordsActive()
-		this.test()
+		this.checkAllCoordsActive()
+
+		if (this.activeCoords.length > 9 || this.activeCoords.length < 5 || this.getMatchPairs().length === 0) {
+			this.newGame()
+		}
 	}
 	//selected coord
 	set select(coord) {
@@ -35,7 +38,7 @@ class Game {
 				this.selectedCoord.selected = false
 				this.selectedCoord = null
 			} else { //another coord selected
-				if (this.match(this.selectedCoord.pinball, coord.pinball)) {
+				if (match(this.selectedCoord.pinball, coord.pinball, this.metalList)) {
 					this.doMatch([this.selectedCoord, coord])
 				} else { //don't match
 					this.selectedCoord.selected = false
@@ -47,34 +50,6 @@ class Game {
 	}
 	get select() {
 		return this.selectedCoord
-	}
-	test() {
-		if (this.activeCoords.length > 9 || this.activeCoords.length < 5) {
-			this.newGame()
-		} else if (this.getMatchPairs().length === 0) {
-			this.newGame()
-		} else {
-			//protect lead // probably pointless
-			this.coords.forEach(circle => {
-				circle.forEach(c => {
-					if (c.pinball && c.pinball.element === 'lead') {
-						let count = 0,
-							around = getCoordsAround(c)
-						around.forEach(cc => {
-							if (cc.circle < config.circles) {
-								if (this.coords[cc.circle][cc.index].pinball && (this.coords[cc.circle][cc.index].pinball.type === 'metal' || this.coords[cc.circle][cc.index].pinball.element === 'quicksilver')) {
-									count++
-								}
-							}
-						})
-						if (count > 2) {
-							this.newGame()
-						}
-					}
-				})
-			})
-		}
-
 	}
 	doMatch([aa, bb]) {
 		let a = this.coords[aa.circle][aa.index],
@@ -91,101 +66,17 @@ class Game {
 		}
 		this.win = this.checkAllCoordsActive().length === 0 ? true : false
 	}
-	match(a, b) {
-		switch (a.type) {
-			case 'basic':
-				if (b.type === 'basic' && a.element === b.element) {
-					return true
-				} else if (b.type === 'salt') {
-					return true
-				}
-				break
-			case 'quicksilver':
-				if (b.element === this.metalList[0]) {
-					// this.metalList.shift()
-					return true
-				}
-				break
-			case 'salt':
-				if (b.type === 'basic' || b.type === 'salt') {
-					return true
-				}
-				break
-			case 'set':
-				if (b.type === 'set' && a.element !== b.element) {
-					return true
-				}
-				break
-			case 'metal':
-				if (a.element === this.metalList[0] && b.type === 'quicksilver') {
-					// this.metalList.shift()
-					return true
-				}
-				break
-			default:
-				return false
-		}
-		return false
-	}
 	checkAllCoordsActive() {
 		let actives = []
 		this.coords.forEach(circleArr => {
 			circleArr.forEach(coord => {
-				if (this.checkCoordActive(coord, this.coords)) {
+				if (checkCoordActive(coord, this.coords, this.metalList)) {
 					actives.push(coord)
 				}
 			})
 		})
 		this.activeCoords = actives
 		return actives
-	}
-	checkCoordActive(coord, coordList) {
-		let {
-			circle,
-			index
-		} = coord
-
-		if (circle >= config.circles) {
-			return true
-		}
-		if (coord.pinball === null) {
-			return false
-		}
-		let result = false
-		// if (coord.pinball) {
-		let around = getCoordsAround(coord).map(coo => {
-			if (coordList[coo.circle]) {
-				return coordList[coo.circle][coo.index]
-			} else {
-				return new Coord(coo.circle, coo.index)
-			}
-		})
-		// console.log('coordToCheck', coord)
-		// console.log('around', around)
-
-		around.forEach((c, i) => {
-			if (i === 0) {
-				if (c.pinball === null && around[5].pinball === null && around[1].pinball === null) {
-					result = true
-				}
-			} else if (i === 5) {
-				if (c.pinball === null && around[4].pinball === null && around[0].pinball === null) {
-					result = true
-				}
-			} else if (c.pinball === null && around[i - 1].pinball === null && around[i + 1].pinball === null) {
-				result = true
-			}
-		})
-
-		if (coord.pinball && coord.pinball.type === 'metal' && coord.pinball.element !== this.metalList[0]) {
-			// console.log('checkMetalActive: ', coord.pinball.element, this.metalList[0])
-			result = false
-		}
-
-		// }
-		coord.active = result
-
-		return result
 	}
 	getMetalList() {
 		let quicksilverCount = 0
@@ -196,6 +87,81 @@ class Game {
 		})
 		return ['lead', 'tin', 'iron', 'copper', 'silver', 'gold'].slice(quicksilverCount - 1)
 	}
+	getMatchPairs() {
+		let result = []
+		//gold
+		this.activeCoords.forEach((coo, idx, arr) => {
+			for (let i = idx + 1; i < arr.length; i++) {
+				if (coo.pinball.element === 'gold') {
+					result.push([{
+						circle: coo.circle,
+						index: coo.index
+					}])
+				}
+			}
+		})
+
+		this.activeCoords.forEach((coo, idx, arr) => {
+			for (let i = idx + 1; i < arr.length; i++) {
+				if (coo.pinball.element === 'quicksilver' && match(coo.pinball, arr[i].pinball, this.metalList)) {
+					result.push([{
+						circle: coo.circle,
+						index: coo.index
+					}, {
+						circle: arr[i].circle,
+						index: arr[i].index
+					}])
+				}
+			}
+		})
+
+		this.activeCoords.forEach((coo, idx, arr) => {
+			for (let i = idx + 1; i < arr.length; i++) {
+				if (coo.pinball.type === 'set' && match(coo.pinball, arr[i].pinball, this.metalList)) {
+					result.push([{
+						circle: coo.circle,
+						index: coo.index
+					}, {
+						circle: arr[i].circle,
+						index: arr[i].index
+					}])
+				}
+			}
+		})
+
+		this.activeCoords.forEach((coo, idx, arr) => {
+			for (let i = idx + 1; i < arr.length; i++) {
+				if (coo.pinball.element === arr[i].pinball.element && match(coo.pinball, arr[i].pinball, this.metalList)) {
+					result.push([{
+						circle: coo.circle,
+						index: coo.index
+					}, {
+						circle: arr[i].circle,
+						index: arr[i].index
+					}])
+				}
+			}
+		})
+
+		this.activeCoords.forEach((coo, idx, arr) => {
+			for (let i = idx + 1; i < arr.length; i++) {
+				if (coo.pinball.element === 'salt' && match(coo.pinball, arr[i].pinball, this.metalList)) {
+					result.push([{
+						circle: coo.circle,
+						index: coo.index
+					}, {
+						circle: arr[i].circle,
+						index: arr[i].index
+					}])
+				}
+			}
+		})
+		// console.log('pairs', result)
+		return result
+	}
+
+
+
 	static getAtomStatus(coords) {
 		let result = {
 			salt: {
@@ -294,9 +260,6 @@ class Game {
 	}
 
 
-
-
-
 	//todo
 	solve() {
 		console.log('solving. . .')
@@ -357,79 +320,7 @@ class Game {
 
 		dfs(nodeStorage)
 
-		
-	}
-	getMatchPairs() {
-		let result = []
-		//gold
-		this.activeCoords.forEach((coo, idx, arr) => {
-			for (let i = idx + 1; i < arr.length; i++) {
-				if (coo.pinball.element === 'gold') {
-					result.push([{
-						circle: coo.circle,
-						index: coo.index
-					}])
-				}
-			}
-		})
 
-		this.activeCoords.forEach((coo, idx, arr) => {
-			for (let i = idx + 1; i < arr.length; i++) {
-				if (coo.pinball.element === 'quicksilver' && this.match(coo.pinball, arr[i].pinball)) {
-					result.push([{
-						circle: coo.circle,
-						index: coo.index
-					}, {
-						circle: arr[i].circle,
-						index: arr[i].index
-					}])
-				}
-			}
-		})
-
-		this.activeCoords.forEach((coo, idx, arr) => {
-			for (let i = idx + 1; i < arr.length; i++) {
-				if (coo.pinball.type === 'set' && this.match(coo.pinball, arr[i].pinball)) {
-					result.push([{
-						circle: coo.circle,
-						index: coo.index
-					}, {
-						circle: arr[i].circle,
-						index: arr[i].index
-					}])
-				}
-			}
-		})
-
-		this.activeCoords.forEach((coo, idx, arr) => {
-			for (let i = idx + 1; i < arr.length; i++) {
-				if (coo.pinball.element === arr[i].pinball.element && this.match(coo.pinball, arr[i].pinball)) {
-					result.push([{
-						circle: coo.circle,
-						index: coo.index
-					}, {
-						circle: arr[i].circle,
-						index: arr[i].index
-					}])
-				}
-			}
-		})
-
-		this.activeCoords.forEach((coo, idx, arr) => {
-			for (let i = idx + 1; i < arr.length; i++) {
-				if (coo.pinball.element === 'salt' && this.match(coo.pinball, arr[i].pinball)) {
-					result.push([{
-						circle: coo.circle,
-						index: coo.index
-					}, {
-						circle: arr[i].circle,
-						index: arr[i].index
-					}])
-				}
-			}
-		})
-		// console.log('pairs', result)
-		return result
 	}
 }
 
@@ -531,7 +422,54 @@ function placePinballs(coords, balls) {
 		}
 	})
 }
+function checkCoordActive(coord, coordList, metalList) {
+	let {
+		circle,
+		index
+	} = coord
 
+	if (circle >= config.circles) {
+		return true
+	}
+	if (coord.pinball === null) {
+		return false
+	}
+	let result = false
+	// if (coord.pinball) {
+	let around = getCoordsAround(coord).map(coo => {
+		if (coordList[coo.circle]) {
+			return coordList[coo.circle][coo.index]
+		} else {
+			return new Coord(coo.circle, coo.index)
+		}
+	})
+	// console.log('coordToCheck', coord)
+	// console.log('around', around)
+
+	around.forEach((c, i) => {
+		if (i === 0) {
+			if (c.pinball === null && around[5].pinball === null && around[1].pinball === null) {
+				result = true
+			}
+		} else if (i === 5) {
+			if (c.pinball === null && around[4].pinball === null && around[0].pinball === null) {
+				result = true
+			}
+		} else if (c.pinball === null && around[i - 1].pinball === null && around[i + 1].pinball === null) {
+			result = true
+		}
+	})
+
+	if (coord.pinball && coord.pinball.type === 'metal' && coord.pinball.element !== metalList[0]) {
+		// console.log('checkMetalActive: ', coord.pinball.element, this.metalList[0])
+		result = false
+	}
+
+	// }
+	coord.active = result
+
+	return result
+}
 function getCoordsAround(coord) {
 	let {
 		circle,
@@ -552,29 +490,29 @@ function getCoordsAround(coord) {
 	if (index === 0 && circle === 0) {
 		// 0, 0
 		result = [{
-				circle: 1,
-				index: 0
-			},
-			{
-				circle: 1,
-				index: 1
-			},
-			{
-				circle: 1,
-				index: 2
-			},
-			{
-				circle: 1,
-				index: 3
-			},
-			{
-				circle: 1,
-				index: 4
-			},
-			{
-				circle: 1,
-				index: 5
-			},
+			circle: 1,
+			index: 0
+		},
+		{
+			circle: 1,
+			index: 1
+		},
+		{
+			circle: 1,
+			index: 2
+		},
+		{
+			circle: 1,
+			index: 3
+		},
+		{
+			circle: 1,
+			index: 4
+		},
+		{
+			circle: 1,
+			index: 5
+		},
 		]
 	} else if (index % circle === 0) {
 		// vertex coord
@@ -598,7 +536,7 @@ function getCoordsAround(coord) {
 		}, {
 			circle: circle + 1,
 			index: index + vertex
-		}, ].map(coordsFix)
+		},].map(coordsFix)
 
 	} else {
 		// edge
@@ -630,6 +568,69 @@ function getCoordsAround(coord) {
 	return result
 }
 
+// function test(coords) {
+
+// 	if (this.activeCoords.length > 9 || this.activeCoords.length < 5) {
+// 		this.newGame()
+// 	} else if (this.getMatchPairs().length === 0) {
+// 		this.newGame()
+// 	} else {
+// 		//protect lead // probably pointless
+// 		this.coords.forEach(circle => {
+// 			circle.forEach(c => {
+// 				if (c.pinball && c.pinball.element === 'lead') {
+// 					let count = 0,
+// 						around = getCoordsAround(c)
+// 					around.forEach(cc => {
+// 						if (cc.circle < config.circles) {
+// 							if (this.coords[cc.circle][cc.index].pinball && (this.coords[cc.circle][cc.index].pinball.type === 'metal' || this.coords[cc.circle][cc.index].pinball.element === 'quicksilver')) {
+// 								count++
+// 							}
+// 						}
+// 					})
+// 					if (count > 2) {
+// 						this.newGame()
+// 					}
+// 				}
+// 			})
+// 		})
+// 	}
+// }
+
+function match(a, b, metalList) {
+	switch (a.type) {
+		case 'basic':
+			if (b.type === 'basic' && a.element === b.element) {
+				return true
+			} else if (b.type === 'salt') {
+				return true
+			}
+			break
+		case 'quicksilver':
+			if (b.element === metalList[0]) {
+				return true
+			}
+			break
+		case 'salt':
+			if (b.type === 'basic' || b.type === 'salt') {
+				return true
+			}
+			break
+		case 'set':
+			if (b.type === 'set' && a.element !== b.element) {
+				return true
+			}
+			break
+		case 'metal':
+			if (a.element === metalList[0] && b.type === 'quicksilver') {
+				return true
+			}
+			break
+		default:
+			return false
+	}
+	return false
+}
 //copy a coords array
 function copyCoords(coords) {
 	let result = []
