@@ -435,7 +435,6 @@ function checkCoordActive(coord, coordList, metalList) {
 		return false
 	}
 	let result = false
-	// if (coord.pinball) {
 	let around = getCoordsAround(coord).map(coo => {
 		if (coordList[coo.circle]) {
 			return coordList[coo.circle][coo.index]
@@ -443,8 +442,6 @@ function checkCoordActive(coord, coordList, metalList) {
 			return new Coord(coo.circle, coo.index)
 		}
 	})
-	// console.log('coordToCheck', coord)
-	// console.log('around', around)
 
 	around.forEach((c, i) => {
 		if (i === 0) {
@@ -461,11 +458,9 @@ function checkCoordActive(coord, coordList, metalList) {
 	})
 
 	if (coord.pinball && coord.pinball.type === 'metal' && coord.pinball.element !== metalList[0]) {
-		// console.log('checkMetalActive: ', coord.pinball.element, this.metalList[0])
 		result = false
 	}
 
-	// }
 	coord.active = result
 
 	return result
