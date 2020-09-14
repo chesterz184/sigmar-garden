@@ -400,9 +400,8 @@ function generateCoordsArrange(coords) {
 				flagArr[i] = i < partCoords ? 1 : 0
 			}
 			flagArr.shuffle()
-			let arrangeArr = flagArr.concat(flagArr, flagArr)
 			for (let i = 0; i < fullCounts[idx]; i++) {
-				if (arrangeArr[i] === 1) {
+				if (flagArr[i % part] === 1) {
 					arrangedCoords.push(circle[i])
 				}
 			}
