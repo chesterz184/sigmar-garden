@@ -1,12 +1,14 @@
+import './public'
 import { createCoords, checkCoordActive, generateCoordsArrange } from './Coord'
 import { shuffleBalls,  match } from './Pinball'
-import './public'
 
 export default class Game {
   constructor() {
     this.win = false
+    this.coords = createCoords()
     this.$selectedCoord = null
-    this.$coords = createCoords()
+    this.$activeCoords = []
+    this.$coordsToPlace = []
   }
 
   /* start a new game */
@@ -14,8 +16,9 @@ export default class Game {
     this.win = false
     this.$selectedCoord = null
     // coords can be selected
+    this._clearCoords()
     this.$activeCoords = []
-    this.$coordsToPlace = generateCoordsArrange(this.$coords)
+    this.$coordsToPlace = generateCoordsArrange(this.coords)
     // place the elements
     let balls = shuffleBalls()
     this.$coordsToPlace.forEach((coord, i) => {
@@ -154,7 +157,7 @@ export default class Game {
         oddWarn: false,
       },
     }
-    this.$coords.forEach((coo) => {
+    this.coords.forEach((coo) => {
       if (coo.pinball) {
         result[coo.pinball.element].count += 1
       }
@@ -162,10 +165,18 @@ export default class Game {
     return result
   }
 
+  getCoords() {
+    return this.coords
+  }
+
+  getFlatCoords() {
+    return this.coords.flatten()
+  }
+
   _doMatch(pair) {
     const [aa, bb] = pair
-    let a = this.$coords[aa.circle][aa.index],
-      b = bb ? this.$coords[bb.circle][bb.index] : null
+    let a = this.coords[aa.circle][aa.index],
+      b = bb ? this.coords[bb.circle][bb.index] : null
     if (a.pinball.element === 'gold') {
       a.removePinball()
     } else {
@@ -182,9 +193,9 @@ export default class Game {
 
   _checkAllCoords() {
     let actives = []
-    this.$coords.forEach((circleArr) => {
+    this.coords.forEach((circleArr) => {
       circleArr.forEach((coord) => {
-        if (checkCoordActive(coord, this.$coords, this.$metalList)) {
+        if (checkCoordActive(coord, this.coords, this.$metalList)) {
           actives.push(coord)
         }
       })
@@ -221,6 +232,14 @@ export default class Game {
       }
     })
     return result
+  }
+
+  _clearCoords() {
+    this.coords.forEach(circle => {
+      circle.forEach(coo => {
+        coo.removePinball()
+      })
+    })
   }
 
   // _getMetalList() {
