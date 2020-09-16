@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "scripts": {
     "dev": "vite",
-    "build": "vite build"
+    "build": "vite build --base=/sigmar-garden/"
   },
   "dependencies": {
     "vue": "^3.0.0-rc.1"
