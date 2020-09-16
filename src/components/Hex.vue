@@ -12,14 +12,11 @@
       transform: translate(${transX}px, ${transY}px);
       width: ${hexRadius * 1.4}px;
       height: ${hexRadius * 1.4}px;`"
+    @click="$emit('click-hex')"
   >
     <img src="../assets/hovered.png" alt="" class="atom-hover" />
     <div class="atom-container">
-      <img
-        v-if="hexData.pinball"
-        :src="`./${hexData.pinball.element}.png`"
-        :alt="hexData.pinball.element"
-      />
+      <img v-if="hexData.pinball" :src="`./atoms/${hexData.pinball.element}.png`" :alt="hexData.pinball.element" />
     </div>
   </div>
 </template>
@@ -52,32 +49,17 @@ const getTransX = (circle, index, radius) => {
 
     switch (vertex) {
       case 0:
-        return (
-          circle * radius * Math.sqrt(3) - (radius * diff * Math.sqrt(3)) / 2
-        )
+        return circle * radius * Math.sqrt(3) - (radius * diff * Math.sqrt(3)) / 2
       case 1:
-        return (
-          (circle * radius * Math.sqrt(3)) / 2 - radius * diff * Math.sqrt(3)
-        )
+        return (circle * radius * Math.sqrt(3)) / 2 - radius * diff * Math.sqrt(3)
       case 2:
-        return (
-          (circle * radius * Math.sqrt(3)) / -2 -
-          (radius * diff * Math.sqrt(3)) / 2
-        )
+        return (circle * radius * Math.sqrt(3)) / -2 - (radius * diff * Math.sqrt(3)) / 2
       case 3:
-        return (
-          circle * radius * Math.sqrt(3) * -1 +
-          (radius * diff * Math.sqrt(3)) / 2
-        )
+        return circle * radius * Math.sqrt(3) * -1 + (radius * diff * Math.sqrt(3)) / 2
       case 4:
-        return (
-          (circle * radius * Math.sqrt(3)) / -2 + radius * diff * Math.sqrt(3)
-        )
+        return (circle * radius * Math.sqrt(3)) / -2 + radius * diff * Math.sqrt(3)
       case 5:
-        return (
-          (circle * radius * Math.sqrt(3)) / 2 +
-          (radius * diff * Math.sqrt(3)) / 2
-        )
+        return (circle * radius * Math.sqrt(3)) / 2 + (radius * diff * Math.sqrt(3)) / 2
     }
   }
 }
@@ -130,7 +112,7 @@ export default {
   setup(props) {
     const transX = getTransX(props.hexData.circle, props.hexData.index, props.hexRadius)
     const transY = getTransY(props.hexData.circle, props.hexData.index, props.hexRadius)
-    
+
     return {
       transX,
       transY,
