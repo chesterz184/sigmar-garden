@@ -13,4 +13,4 @@ All textures were exported from the original game. Thanks to the devs for such a
 
 2. npm run dev(build)
 
-3. the game should start at http://localhost:3000
+3. the game will start at http://localhost:3000
