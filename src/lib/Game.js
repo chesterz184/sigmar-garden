@@ -84,6 +84,7 @@ export default class Game {
         status[coo.pinball.element].count += 1
       }
     })
+    return status
   }
 
   static getInitStatus() {

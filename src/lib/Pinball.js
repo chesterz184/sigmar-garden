@@ -16,35 +16,38 @@ const _elementCount = {
 }
 
 export default class Pinball {
-	constructor(element) {
-		this.element = element
-		switch (element) {
-			case 'air':
-			case 'water':
-			case 'fire':
-			case 'earth':
-				this.type = 'basic'
-				break
-			case 'quicksilver':
-				this.type = 'quicksilver'
-				break
-			case 'lead':
-			case 'tin':
-			case 'iron':
-			case 'copper':
-			case 'silver':
-			case 'gold':
-				this.type = 'metal'
-				break
-			case 'salt':
-				this.type = 'salt'
-				break
-			case 'vitae':
-			case 'mors':
-				this.type = 'set'
-				break
-		}
-	}
+  constructor(element) {
+    this.element = element
+    switch (element) {
+      case 'air':
+      case 'water':
+      case 'fire':
+      case 'earth':
+        this.type = 'basic'
+        break
+      case 'quicksilver':
+        this.type = 'quicksilver'
+        break
+      case 'lead':
+      case 'tin':
+      case 'iron':
+      case 'copper':
+      case 'silver':
+      case 'gold':
+        this.type = 'metal'
+        break
+      case 'salt':
+        this.type = 'salt'
+        break
+      case 'vitae':
+      case 'mors':
+        this.type = 'set'
+        break
+      default:
+        this.type = 'salt'
+        break
+    }
+  }
 }
 
 //create a randomized pinball array (gold at 0)
@@ -59,9 +62,12 @@ export function shuffleBalls() {
         }
       }
     }
-    // _balls[0] is gold
-    _balls.shuffle().unshift(new Pinball('gold'))
+  } else {
+    // remove the first gold
+    _balls.shift()
   }
+  // _balls[0] is gold
+  _balls.shuffle().unshift(new Pinball('gold'))
   return _balls
 }
 

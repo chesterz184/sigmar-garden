@@ -1,4 +1,5 @@
 //shuffle Array
+// eslint-disable-next-line
 Array.prototype.shuffle = function () {
   let input = this
 
@@ -12,6 +13,7 @@ Array.prototype.shuffle = function () {
   return input
 }
 //flatten array
+// eslint-disable-next-line
 Array.prototype.flatten = function () {
   let arr = this
   while (arr.some((item) => Array.isArray(item))) {
