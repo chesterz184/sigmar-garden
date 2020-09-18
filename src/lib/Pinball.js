@@ -59,9 +59,12 @@ export function shuffleBalls() {
         }
       }
     }
-    // _balls[0] is gold
-    _balls.shuffle().unshift(new Pinball('gold'))
+    _balls.shuffle()
+  } else {
+    _balls.shift()
   }
+  // _balls[0] is gold
+  _balls.unshift(new Pinball('gold'))
   return _balls
 }
 
