@@ -59,11 +59,11 @@ export function shuffleBalls() {
         }
       }
     }
-    _balls.shuffle()
   } else {
     _balls.shift()
   }
   // _balls[0] is gold
+  _balls.shuffle()
   _balls.unshift(new Pinball('gold'))
   return _balls
 }
@@ -101,4 +101,8 @@ export function match(a, b, activeMetal) {
       return false
   }
   return false
+}
+
+export function copyPinball(pinball) {
+  return new Pinball(pinball.element)
 }

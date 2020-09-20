@@ -1,3 +1,5 @@
+import { copyPinball } from './Pinball'
+
 const _circles = 6
 
 export default class Coord {
@@ -255,4 +257,12 @@ export function generateCoordsArrange(coords) {
     }
   })
   return arrangedCoords
+}
+
+export function copyCoord(coord) {
+  let res = new Coord(coord.circle, coord.index)
+  res.pinball = copyPinball(coord.pinball)
+  res.active = coord.active
+  res.selected = coord.selected
+  return res
 }

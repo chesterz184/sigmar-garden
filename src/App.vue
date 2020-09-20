@@ -38,9 +38,10 @@ import './lib/public'
 import Game from './lib/Game'
 import Hex from './components/Hex.vue'
 import Status from './components/Status.vue'
-import { reactive, toRefs, onMounted } from 'vue'
+import { ref, reactive, toRefs, onMounted, watchEffect, watch } from 'vue'
 
 const game = new Game()
+const flatCoords = game.getFlatCoords()
 
 export default {
   name: 'App',
@@ -69,7 +70,7 @@ export default {
       const insert = () => {
         if (state.hexList.length < 91) {
           // use timeout for animation
-          let interval = coords[idx].pinball === null ? 0 : 70
+          let interval = coords[idx].pinball === null ? 0 : 10
           state.hexList.push(coords[idx++])
           Game.updateStatus(state.hexList, state.status)
           setTimeout(insert, interval)
@@ -81,6 +82,7 @@ export default {
     }
 
     const onClickHex = (hexItem) => {
+      // game.solve()
       game.select(hexItem)
       Game.updateStatus(state.hexList, state.status)
       state.hexList = [...game.getFlatCoords()]
@@ -94,6 +96,10 @@ export default {
         localStorage.setItem('winCount', 0)
       } else {
         state.winCount = localStorage.getItem('winCount')
+      }
+
+      game.updateEvent = () => {
+        state.hexList = [...game.getFlatCoords()]
       }
 
       newGame()

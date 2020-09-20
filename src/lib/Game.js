@@ -1,20 +1,21 @@
 import './public'
-import { createCoords, checkCoordActive, generateCoordsArrange } from './Coord'
-import { shuffleBalls,  match } from './Pinball'
+import { createCoords, checkCoordActive, generateCoordsArrange, copyCoord } from './Coord'
+import { shuffleBalls, match } from './Pinball'
 
 export default class Game {
   constructor() {
     this.win = false
     this.$coords = createCoords()
     this.$flatCoords = []
-    this.$coords.forEach(circle => {
-      circle.forEach(index => {
+    this.$coords.forEach((circle) => {
+      circle.forEach((index) => {
         this.$flatCoords.push(index)
       })
     })
     this.$selectedCoord = null
     this.$activeCoords = []
     this.$coordsToPlace = []
+    this.updateEvent = null
   }
 
   /* start a new game */
@@ -35,11 +36,7 @@ export default class Game {
     this.$metalList = ['lead', 'tin', 'iron', 'copper', 'silver', 'gold']
     this._checkAllCoords()
 
-    if (
-      this.$activeCoords.length > 9 ||
-      this.$activeCoords.length < 5 ||
-      this._getMatchPairs().length === 0
-    ) {
+    if (this.$activeCoords.length > 9 || this.$activeCoords.length < 5 || this._getMatchPairs().length === 0) {
       this.initGame()
     }
   }
@@ -61,9 +58,7 @@ export default class Game {
         this.$selectedCoord = null
       } else {
         //another coord selected
-        if (
-          match(this.$selectedCoord.pinball, coord.pinball, this.$metalList[0])
-        ) {
+        if (match(this.$selectedCoord.pinball, coord.pinball, this.$metalList[0])) {
           this._doMatch([this.$selectedCoord, coord])
         } else {
           //don't match
@@ -76,7 +71,7 @@ export default class Game {
   }
 
   static updateStatus(coords, status) {
-    for(let ele in status) {
+    for (let ele in status) {
       status[ele].count = 0
     }
     coords.forEach((coo) => {
@@ -246,11 +241,85 @@ export default class Game {
   }
 
   _clearCoords() {
-    this.$coords.forEach(circle => {
-      circle.forEach(coo => {
+    this.$coords.forEach((circle) => {
+      circle.forEach((coo) => {
         coo.removePinball()
       })
     })
+  }
+
+  notify() {
+    this.updateEvent()
+  }
+
+  solve() {
+    const start = new Date().getTime()
+    const moves = []
+    const mem = {}
+    let count = 0
+
+    const dfs = (coords, level) => {
+      count++
+      if (count > 500000) {
+        return false
+      }
+      let coordsHash = this._getCoordsHash(coords)
+      if (mem[coordsHash]) {
+        return mem[coordsHash]
+      }
+      let matchPairs = this._getMatchPairs()
+      if (matchPairs.length > 0) {
+        for (let pair of matchPairs) {
+          let move = pair.map((coord) => {
+            return copyCoord(this.$coords[coord.circle][coord.index])
+          })
+          // TODO: cut
+          this._doMatch(pair)
+          moves.push(move)
+          if (this.win) {
+            return true
+          }
+          if (dfs(this.$flatCoords, level + 1)) {
+            return true
+          } else {
+            mem[coordsHash] = false
+            // back to last step
+            let lastMove = moves.pop()
+            lastMove.forEach((coo) => {
+              let target = this.$coords[coo.circle][coo.index]
+              target.placePinball(coo.pinball)
+              if (coo.pinball.type === 'metal' && coo.pinball.element !== 'gold') {
+                this.$metalList.unshift(coo.pinball.element)
+              }
+            })
+            this._checkAllCoords()
+          }
+        }
+        mem[coordsHash] = false
+        return false
+      } else {
+        mem[coordsHash] = false
+        return false
+      }
+    }
+    let res = dfs(this.$flatCoords, 0)
+    console.log(res, count)
+    console.log(new Date().getTime() - start + 'ms')
+    return res
+  }
+
+  randomPlay() {
+
+  }
+
+  _getCoordsHash(coords) {
+    return coords.map((coo) => {
+      if(coo.pinball) {
+        return `${coo.circle}${coo.pinball ? coo.pinball.element.substring(0, 2) : 'n'}${coo.index}`
+      } else {
+        return ''
+      }
+    }).join('#')
   }
 
   // _getMetalList() {
