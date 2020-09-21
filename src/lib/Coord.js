@@ -9,34 +9,42 @@ export default class Coord {
     this.pinball = null
     this.active = false //can be selected
     this.selected = false
+    /* the related status object */
+    this.$status = null
+    this.around = []
+  }
+
+  setStatus(status) {
+    this.$status = status
   }
 
   placePinball(pinball) {
     this.pinball = pinball
+    if (this.$status) {
+      this.$status[pinball.element].count++
+    }
   }
 
   removePinball() {
-    this.pinball = null
-    this.active = false
-    this.selected = false
+    if (this.pinball) {
+      if (this.$status) {
+        this.$status[this.pinball.element].count--
+      }
+      this.pinball = null
+      this.active = false
+      this.selected = false
+    }
   }
 }
 
-const _aroundCache = new Map()
 function getCoordsAround(coord) {
   const { circle, index } = coord
-
-	let arg = `${circle}-${index}`
-  if (_aroundCache.has(arg)) {
-    return _aroundCache.get(arg)
-  }
-
   let result = []
   function coordsFix(coord) {
-    if (coord.index < 0) {
-      coord.index += coord.circle * 6
-    } else if (coord.index >= coord.circle * 6) {
-      coord.index -= coord.circle * 6
+    if (coord[1] < 0) {
+      coord[1] += coord[0] * 6
+    } else if (coord[1] >= coord[0] * 6) {
+      coord[1] -= coord[0] * 6
     }
     return coord
   }
@@ -44,60 +52,23 @@ function getCoordsAround(coord) {
   if (index === 0 && circle === 0) {
     // 0, 0
     result = [
-      {
-        circle: 1,
-        index: 0,
-      },
-      {
-        circle: 1,
-        index: 1,
-      },
-      {
-        circle: 1,
-        index: 2,
-      },
-      {
-        circle: 1,
-        index: 3,
-      },
-      {
-        circle: 1,
-        index: 4,
-      },
-      {
-        circle: 1,
-        index: 5,
-      },
+      [1, 0],
+      [1, 1],
+      [1, 2],
+      [1, 3],
+      [1, 4],
+      [1, 5],
     ]
   } else if (index % circle === 0) {
     // vertex coord
     let vertex = index / circle
-
     result = [
-      {
-        circle: circle + 1,
-        index: index + vertex + 1,
-      },
-      {
-        circle: circle,
-        index: index + 1,
-      },
-      {
-        circle: circle - 1,
-        index: index - vertex,
-      },
-      {
-        circle: circle,
-        index: index - 1,
-      },
-      {
-        circle: circle + 1,
-        index: index + vertex - 1,
-      },
-      {
-        circle: circle + 1,
-        index: index + vertex,
-      },
+      [circle + 1, index + vertex + 1],
+      [circle, index + 1],
+      [circle - 1, index - vertex],
+      [circle, index - 1],
+      [circle + 1, index + vertex - 1],
+      [circle + 1, index + vertex],
     ].map(coordsFix)
   } else {
     // edge
@@ -106,83 +77,42 @@ function getCoordsAround(coord) {
     let diff = index - vertex * circle
 
     result = [
-      {
-        circle: circle,
-        index: index + 1,
-      },
-      {
-        circle: circle - 1,
-        index: (circle - 1) * vertex + diff,
-      },
-      {
-        circle: circle - 1,
-        index: (circle - 1) * vertex + diff - 1,
-      },
-      {
-        circle: circle,
-        index: index - 1,
-      },
-      {
-        circle: circle + 1,
-        index: (circle + 1) * vertex + diff,
-      },
-      {
-        circle: circle + 1,
-        index: (circle + 1) * vertex + diff + 1,
-      },
+      [circle, index + 1],
+      [circle - 1, (circle - 1) * vertex + diff],
+      [circle - 1, (circle - 1) * vertex + diff - 1],
+      [circle, index - 1],
+      [circle + 1, (circle + 1) * vertex + diff],
+      [circle + 1, (circle + 1) * vertex + diff + 1]
     ].map(coordsFix)
-	}
-	_aroundCache.set(arg, result)
+  }
   return result
 }
 
-export function checkCoordActive(coord, coordList, activeMetal) {
-	if (coord.circle >= _circles) {
-		return true
-	}
+export function checkCoordActive(coord, metalList) {
+  const activeMetal = metalList[0] ? metalList[0].pinball.element : ''
+  if (coord.circle >= _circles) {
+    return true
+  }
   if (coord.pinball === null) {
     return false
   }
   let result = false
-  let around = getCoordsAround(coord).map((coo) => {
-    if (coordList[coo.circle]) {
-      return coordList[coo.circle][coo.index]
-    } else {
-      return new Coord(coo.circle, coo.index)
-    }
-  })
-
-  around.forEach((c, i) => {
+  const around = coord.around
+  coord.around.forEach((c, i) => {
     if (i === 0) {
-      if (
-        c.pinball === null &&
-        around[5].pinball === null &&
-        around[1].pinball === null
-      ) {
+      if (c.pinball === null && around[5].pinball === null && around[1].pinball === null) {
         result = true
       }
     } else if (i === 5) {
-      if (
-        c.pinball === null &&
-        around[4].pinball === null &&
-        around[0].pinball === null
-      ) {
+      if (c.pinball === null && around[4].pinball === null && around[0].pinball === null) {
         result = true
       }
-    } else if (
-      c.pinball === null &&
-      around[i - 1].pinball === null &&
-      around[i + 1].pinball === null
-    ) {
+    } else if (c.pinball === null && around[i - 1].pinball === null && around[i + 1].pinball === null) {
       result = true
     }
   })
 
-  if (
-    coord.pinball &&
-    coord.pinball.type === 'metal' &&
-    coord.pinball.element !== activeMetal
-  ) {
+  if (coord.pinball && coord.pinball.type === 'metal' && coord.pinball.element !== activeMetal) {
     result = false
   }
 
@@ -203,6 +133,16 @@ export function createCoords() {
     }
     coords.push(circleArr)
   }
+
+  /* save around coords */
+  coords.forEach(circle => {
+    circle.forEach(index => {
+      index.around = getCoordsAround(index).map(coo => {
+        const [c, i] = coo
+        return coords[c] ? coords[c][i] : new Coord(c, i)
+      })
+    })
+  })
 
   return coords
 }

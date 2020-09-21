@@ -68,7 +68,8 @@ export function shuffleBalls() {
   return _balls
 }
 
-export function match(a, b, activeMetal) {
+export function match(a, b, metalList) {
+  const activeMetal = metalList[0] ? metalList[0].pinball.element : ''
   switch (a.type) {
     case 'basic':
       if (b.type === 'basic' && a.element === b.element) {

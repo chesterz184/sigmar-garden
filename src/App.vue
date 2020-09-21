@@ -5,7 +5,7 @@
     </transition-group>
 
     <div class="board-footer" :style="'font-size: ' + 38.1 / 2.6 + 'px'">
-      <button :style="'font-size: ' + 38.1 / 2.6 + 'px'" class="btn-start" @click="newGame">NEW GAME</button>
+      <button :style="'font-size: ' + 38.1 / 2.6 + 'px'" class="btn start" @click="newGame">NEW GAME</button>
       <div class="status-bar">
         <status :status="status.salt"></status>
         <span class="status-divide">|</span>
@@ -23,13 +23,16 @@
         <status :status="status.silver"></status>
         <status :status="status.gold"></status>
       </div>
-      <button class="btn-help" @click="showHelp = true"></button>
+      <button class="btn help" @click="showHelp = true"></button>
       <div class="record">
         <span>WINS</span>
         <span>{{ winCount }}</span>
       </div>
     </div>
   </div>
+
+  <button class="btn solve" @click="solve">SOLVE</button>
+  <button class="btn solve" @click="restart">RESTART</button>
   <img class="help-content" v-if="showHelp" src="./assets/help_content.jpg" alt="help content" @click="showHelp = false" />
 </template>
 
@@ -38,10 +41,9 @@ import './lib/public'
 import Game from './lib/Game'
 import Hex from './components/Hex.vue'
 import Status from './components/Status.vue'
-import { ref, reactive, toRefs, onMounted, watchEffect, watch } from 'vue'
+import { reactive, toRefs, onMounted } from 'vue'
 
 const game = new Game()
-const flatCoords = game.getFlatCoords()
 
 export default {
   name: 'App',
@@ -58,19 +60,16 @@ export default {
       winCount: 0,
     })
 
-    const newGame = () => {
-      if (state.isRendering) {
-        return
-      }
+    const renderBoard = () => {
       state.isRendering = true
-      game.initGame()
-      const coords = game.getFlatCoords()
+      const coords = game.getRenderCoords()
+      const len = coords.length
       state.hexList = []
       let idx = 0
       const insert = () => {
-        if (state.hexList.length < 91) {
+        if (state.hexList.length < len) {
           // use timeout for animation
-          let interval = coords[idx].pinball === null ? 0 : 10
+          let interval = coords[idx].pinball === null ? 0 : 70
           state.hexList.push(coords[idx++])
           Game.updateStatus(state.hexList, state.status)
           setTimeout(insert, interval)
@@ -80,15 +79,36 @@ export default {
       }
       insert()
     }
+    const newGame = () => {
+      if (state.isRendering) {
+        return
+      }
+      game.initGame()
+      renderBoard()
+    }
+
+    const restart = () => {
+      if (state.isRendering) {
+        return
+      }
+      game.restart()
+      renderBoard()
+    }
 
     const onClickHex = (hexItem) => {
-      // game.solve()
+      if (state.isRendering) {
+        return
+      }
       game.select(hexItem)
       Game.updateStatus(state.hexList, state.status)
-      state.hexList = [...game.getFlatCoords()]
+      state.hexList = [...game.getRenderCoords()]
       if (game.win) {
-        localStorage.setItem('wins', ++state.winCount)
+        localStorage.setItem('winCount', ++state.winCount)
       }
+    }
+
+    const solve = () => {
+      game.solve()
     }
 
     onMounted(() => {
@@ -107,8 +127,10 @@ export default {
 
     return {
       ...toRefs(state),
+      restart,
       newGame,
       onClickHex,
+      solve,
     }
   },
 }
@@ -164,21 +186,7 @@ h5 {
   flex-direction: row;
   flex-wrap: nowrap;
 }
-.board-footer button {
-  padding: 0;
-  border: 0;
-  height: 100%;
-  z-index: 1;
-}
-.board-footer button:hover {
-  filter: brightness(1.3);
-  text-shadow: none;
-  color: #eee;
-}
-.board-footer button:focus {
-  outline: none;
-}
-.btn-start {
+.btn {
   background-image: url('./assets/btn_bg.png');
   background-color: black;
   background-repeat: no-repeat;
@@ -187,15 +195,34 @@ h5 {
   font-weight: bold;
   font-family: 'Cormorant Bold', 'Garamond', 'Georgia', 'Times New Roman', serif;
   text-shadow: 0 1px 1px rgba(201, 185, 143, 0.3);
+  border: 0;
+  padding: 0;
+  z-index: 1;
+}
+.btn:hover {
+  filter: brightness(1.3);
+  text-shadow: none;
+  color: #eee;
+}
+.btn:focus {
+  outline: none;
+}
+.btn.start {
+  height: 100%;
   width: 15.8%;
   margin: 0 0.7%;
 }
-.btn-start.disabled {
+.btn.start.disabled {
   filter: brightness(0.5);
 }
-.btn-start.disabled:hover {
+.btn.start.disabled:hover {
   color: #111;
   text-shadow: none;
+}
+.btn.solve {
+  margin: 0 10px;
+  width: 100px;
+  height: 40px;
 }
 
 .status-bar {
@@ -207,12 +234,13 @@ h5 {
   align-items: center;
   justify-content: space-around;
 }
-.btn-help {
+.btn.help {
   background-image: url('./assets/help.png');
   background-color: black;
   background-repeat: no-repeat;
   background-size: 100% 100%;
   width: 4.5%;
+  height: 100%;
 }
 .help-content {
   position: absolute;
