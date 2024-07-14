@@ -6,7 +6,6 @@ You can [play it here](https://chesterz184.github.io/sigmar-garden/). Works bett
 
 All textures were exported from the original game. Thanks to the devs for such a great game!
 
-
 ## usage
 
 1. npm install
